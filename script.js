@@ -7,7 +7,7 @@ let tiles = new Array(ROWS).fill(null).map(() => new Array(COLS).fill(null));
 
 begin();
 
-// -------------------- Setup --------------------
+// -------------------- Functions --------------------
 
 document.documentElement.style.setProperty("--ROWS", ROWS);
 document.documentElement.style.setProperty("--COLS", COLS);
@@ -29,11 +29,14 @@ function randomTile() {
   const i = Math.floor(Math.random() * 4);
   const j = Math.floor(Math.random() * 4);
   const tile = tiles[i][j];
-  if (tile.classList.contains("tile")) {
+  if (tile.firstChild) {
+    console.log("test");
     return randomTile();
   } else {
-    tile.classList.add("tile");
-    tile.innerText = Math.random() <= 0.1 ? "4" : "2";
+    const child = document.createElement("div");
+    child.classList.add("tile", "popout");
+    child.innerText = Math.random() <= 0.1 ? "4" : "2";
+    tile.append(child);
   }
 } // randomTile
 
@@ -63,9 +66,65 @@ function begin() {
 // Restarts the game
 function restartGame() {
   board.innerHTML = "";
-  tiles = new Array(4).fill(null).map(() => new Array(4).fill(null));
+  tiles = new Array(ROWS).fill(null).map(() => new Array(COLS).fill(null));
 } // restartGame
 
 window.addEventListener("keydown", (e) => {
-  if (e.key == "w" || e.key == "W") console.log("test");
-});
+  switch (e.key) {
+    case "w":
+    case "W":
+    case "ArrowUp":
+      for (let col = 0; col < COLS; col++) {
+        for (let row = 1; row < ROWS; row++) {
+          if (!tiles[row][col].firstChild || tiles[row - 1][col].firstChild) {
+            continue;
+          } // if
+          const currentTile = tiles[row][col];
+
+          let currentRow = row;
+          while (currentRow !== 0 && !tiles[currentRow - 1][col].firstChild) {
+            currentRow--;
+          } // while
+          const newTile = tiles[currentRow][col];
+          const newTileChild = document.createElement("div");
+          newTileChild.classList.add("tile", "forwards");
+          newTileChild.innerText = currentTile.firstChild.innerText;
+
+          currentTile.removeChild(currentTile.firstChild);
+
+          document.documentElement.style.setProperty("--ONE", "translateY(calc(var(--GAP) + var(--SIZE)))");
+          document.documentElement.style.setProperty("--TWO", "translateY(calc((var(--GAP) + var(--SIZE)) * 2))");
+          document.documentElement.style.setProperty("--THREE", "translateY(calc((var(--GAP) + var(--SIZE)) * 3))");
+
+          switch (row - currentRow) {
+            case 1:
+              newTileChild.classList.add("slide-one");
+              break;
+            case 2:
+              newTileChild.classList.add("slide-two");
+              break;
+            case 3:
+              newTileChild.classList.add("slide-three");
+              break;
+          } // switch
+          newTile.append(newTileChild);
+        } // for
+      } // for
+      break;
+    case "a":
+    case "A":
+    case "ArrowLeft":
+      console.log("a works");
+      break;
+    case "s":
+    case "S":
+    case "ArrowDown":
+      console.log("s works");
+      break;
+    case "d":
+    case "D":
+    case "ArrowRight":
+      console.log("d works");
+      break;
+  } // switch
+}); // addEventListener

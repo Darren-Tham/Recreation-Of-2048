@@ -11,6 +11,12 @@
 :root {
   --ROWS: SET_IN_JS;
   --COLS: SET_IN_JS;
+  --SIZE: 20vmin;
+  --GAP: 1.5vmin;
+  --SLIDE-DURATION: 100ms;
+  --ONE: SET_IN_JS;
+  --TWO: SET_IN_JS;
+  --THREE: SET_IN_JS;
 }
 
 body {
@@ -26,31 +32,72 @@ body {
   position: absolute;
   background: hsl(200, 0%, 75%);
   display: grid;
-  grid-template-rows: repeat(var(--ROWS), 20vmin);
-  grid-template-columns: repeat(var(--COLS), 20vmin);
-  border-radius: 1.5vmin;
-  gap: 1.5vmin;
-  padding: 1.5vmin;
+  grid-template-rows: repeat(var(--ROWS), var(--SIZE));
+  grid-template-columns: repeat(var(--COLS), var(--SIZE));
+  border-radius: 2vmin;
+  gap: var(--GAP);
+  padding: var(--GAP);
 }
 
-.tile-setup{
+.tile-setup {
   background: hsl(200, 0%, 60%);
-  border-radius: 1.5vmin;
+  border-radius: 2vmin;
+}
+
+.tile {
+  width: var(--SIZE);
+  height: var(--SIZE);
+  border-radius: 2vmin;
+  background: hsl(200, 100%, 90%);
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.tile {
-  background: hsl(200, 100%, 90%);
-  animation: pop 100ms;
+
+.popout {
+  animation: popout 100ms;
   animation-fill-mode: forwards;
 }
 
-@keyframes pop {
+.forwards {
+  animation-fill-mode: forwards;
+}
+
+.slide-one {
+  animation: slide-one var(--SLIDE-DURATION) linear;
+}
+
+.slide-two {
+  animation: slide-two calc(var(--SLIDE-DURATION) * 2) linear;
+}
+
+.slide-three {
+  animation: slide-three calc(var(--SLIDE-DURATION) * 3) linear;
+}
+
+@keyframes popout {
   from {
     transform: scale(0);
   }
   to {
     transform: scale(1);
+  }
+}
+
+@keyframes slide-one {
+  from {
+    transform: var(--ONE);
+  }
+}
+
+@keyframes slide-two {
+  from {
+    transform: var(--TWO);
+  }
+}
+
+@keyframes slide-three {
+  from {
+    transform: var(--THREE);
   }
 }
