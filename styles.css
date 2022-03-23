@@ -8,6 +8,11 @@
   font-weight: bold;
 }
 
+:root {
+  --ROWS: SET_IN_JS;
+  --COLS: SET_IN_JS;
+}
+
 body {
   min-height: 100vh;
   background: hsl(200, 0%, 25%);
@@ -21,8 +26,8 @@ body {
   position: absolute;
   background: hsl(200, 0%, 75%);
   display: grid;
-  grid-template-rows: repeat(4, 20vmin);
-  grid-template-columns: repeat(4, 20vmin);
+  grid-template-rows: repeat(var(--ROWS), 20vmin);
+  grid-template-columns: repeat(var(--COLS), 20vmin);
   border-radius: 1.5vmin;
   gap: 1.5vmin;
   padding: 1.5vmin;
