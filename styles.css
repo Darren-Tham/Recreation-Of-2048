@@ -1,6 +1,11 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 7vmin;
+  font-weight: bold;
 }
 
 body {
@@ -23,7 +28,24 @@ body {
   padding: 1.5vmin;
 }
 
-.tile {
+.tile-setup{
   background: hsl(200, 0%, 60%);
   border-radius: 1.5vmin;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tile {
+  background: hsl(200, 100%, 90%);
+  animation: pop 100ms;
+  animation-fill-mode: forwards;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
