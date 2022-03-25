@@ -13,7 +13,7 @@
   --COLS: SET_IN_JS;
   --SIZE: 20vmin;
   --GAP: 1.5vmin;
-  --SLIDE-DURATION: 100ms;
+  --DURATION: 100ms;
   --ONE: SET_IN_JS;
   --TWO: SET_IN_JS;
   --THREE: SET_IN_JS;
@@ -48,31 +48,36 @@ body {
   width: var(--SIZE);
   height: var(--SIZE);
   border-radius: 2vmin;
-  background: hsl(200, 100%, 90%);
+  /* background: hsl(200, 100%, 90%); */
   display: flex;
   justify-content: center;
   align-items: center;
+  position: absolute;  
 }
 
 .popout {
-  animation: popout 100ms;
-  animation-fill-mode: forwards;
-}
-
-.forwards {
+  animation: popout var(--DURATION);
   animation-fill-mode: forwards;
 }
 
 .slide-one {
-  animation: slide-one var(--SLIDE-DURATION) linear;
+  animation: slide-one var(--DURATION) linear;
+  animation-fill-mode: forwards;
 }
 
 .slide-two {
-  animation: slide-two calc(var(--SLIDE-DURATION) * 2) linear;
+  animation: slide-two calc(var(--DURATION) * 2) linear;
+  animation-fill-mode: forwards;
 }
 
 .slide-three {
-  animation: slide-three calc(var(--SLIDE-DURATION) * 3) linear;
+  animation: slide-three calc(var(--DURATION) * 3) linear;
+  animation-fill-mode: forwards;
+}
+
+.merge {
+  animation: merge var(--DURATION);
+  animation-fill-mode: forwards;
 }
 
 @keyframes popout {
@@ -99,5 +104,14 @@ body {
 @keyframes slide-three {
   from {
     transform: var(--THREE);
+  }
+}
+
+@keyframes merge {
+  80% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
   }
 }
