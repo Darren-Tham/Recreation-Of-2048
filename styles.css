@@ -48,7 +48,6 @@ body {
   width: var(--SIZE);
   height: var(--SIZE);
   border-radius: 2vmin;
-  /* background: hsl(200, 100%, 90%); */
   display: flex;
   justify-content: center;
   align-items: center;
