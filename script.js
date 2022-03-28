@@ -4,6 +4,7 @@ const DURATION = parseInt(window.getComputedStyle(document.documentElement).getP
 const board = document.getElementById("board");
 let tiles = new Array(ROWS).fill().map(() => new Array(COLS).fill(null));
 let nums = new Array(ROWS).fill().map(() => new Array(COLS).fill(0));
+let hasMerged = new Array(ROWS).fill().map(() => new Array(COLS).fill(false));
 
 // -------------------- Main Method --------------------
 
@@ -71,6 +72,8 @@ function begin() {
 function restartGame() {
   board.innerHTML = "";
   tiles = new Array(ROWS).fill(null).map(() => new Array(COLS).fill(null));
+  nums = new Array(ROWS).fill().map(() => new Array(COLS).fill(0));
+  resetHasMerged();
 } // restartGame
 
 // Adds a color to the tile
@@ -121,7 +124,7 @@ function newMergedTile(tile, delay) {
 } // newMergedTile
 
 // Resets the element's class name to only tile for aesthetic
-function clearClassName(tile, delay, overlap) {
+function resetClassName(tile, delay, overlap) {
   if (overlap) {
     delay += DURATION;
   } // if
@@ -129,7 +132,12 @@ function clearClassName(tile, delay, overlap) {
   setTimeout(() => {
     tile.className = "tile";
   }, delay); // setTimeout
-} // clearClassName
+} // resetClassName
+
+// Resets the boolean array hasMerged to all false
+function resetHasMerged() {
+  hasMerged = new Array(ROWS).fill().map(() => new Array(COLS).fill(false));
+} // resetHasMerged
 
 window.addEventListener("keydown", (e) => {
   switch (e.key) {
@@ -155,8 +163,9 @@ window.addEventListener("keydown", (e) => {
             newRow--;
           } // while
 
-          // if the tile above is the same number, make the tile above the newTile
-          if (newRow && nums[newRow - 1][col] === nums[row][col]) {
+          // if the tile above is the same numbe and have not been merged,
+          // then make the tile above the newTile
+          if (newRow && !hasMerged[newRow - 1][col] && nums[newRow - 1][col] === nums[row][col]) {
             newRow--;
             overlap = true;
           } // if
@@ -193,11 +202,13 @@ window.addEventListener("keydown", (e) => {
           if (overlap) {
             newMergedTile(newTileChild, delay);
             nums[newRow][col] *= 2;
+            hasMerged[newRow][col] = true;
           } // if
-          clearClassName(newTileChild, delay, overlap);
+          resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
       addRandomTileAfterMoves(maxDelay, validMove);
+      resetHasMerged();
       break;
     } // Up
     case "a":
@@ -222,8 +233,9 @@ window.addEventListener("keydown", (e) => {
             newCol--;
           } // while
 
-          // if the tile to the left is the same number, make the tile above the newTile
-          if (newCol && nums[row][newCol - 1] === nums[row][col]) {
+          // if the tile to the left is the same number and have not been merged,
+          // then make the tile above the newTile
+          if (newCol && !hasMerged[row][newCol - 1] && nums[row][newCol - 1] === nums[row][col]) {
             newCol--;
             overlap = true;
           } // if
@@ -260,11 +272,13 @@ window.addEventListener("keydown", (e) => {
           if (overlap) {
             newMergedTile(newTileChild, delay);
             nums[row][newCol] *= 2;
+            hasMerged[row][newCol] = true;
           } // if
-          clearClassName(newTileChild, delay, overlap);
+          resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
       addRandomTileAfterMoves(maxDelay, validMove);
+      resetHasMerged();
       break;
     } // Left
     case "s":
@@ -290,7 +304,7 @@ window.addEventListener("keydown", (e) => {
           } // while
 
           // if the tile below is the same number, make the tile above the newTile
-          if (newRow !== ROWS - 1 && nums[newRow + 1][col] === nums[row][col]) {
+          if (newRow !== ROWS - 1 && !hasMerged[newRow + 1][col] && nums[newRow + 1][col] === nums[row][col]) {
             newRow++;
             overlap = true;
           } // if
@@ -298,7 +312,7 @@ window.addEventListener("keydown", (e) => {
           const distance = newRow - row;
           if (!distance) {
             continue;
-          }
+          } // if
 
           validMove = true;
 
@@ -327,11 +341,13 @@ window.addEventListener("keydown", (e) => {
           if (overlap) {
             newMergedTile(newTileChild, delay);
             nums[newRow][col] *= 2;
+            hasMerged[newRow][col] = true;
           } // if
-          clearClassName(newTileChild, delay, overlap);
+          resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
       addRandomTileAfterMoves(maxDelay, validMove);
+      resetHasMerged();
       break;
     } // Down
     case "d":
@@ -357,7 +373,7 @@ window.addEventListener("keydown", (e) => {
           } // while
 
           // if the tile below is the same number, make the tile above the newTile
-          if (newCol !== COLS - 1 && nums[row][newCol + 1] === nums[row][col]) {
+          if (newCol !== COLS - 1 && !hasMerged[row][newCol + 1] && nums[row][newCol + 1] === nums[row][col]) {
             newCol++;
             overlap = true;
           } // if
@@ -394,11 +410,13 @@ window.addEventListener("keydown", (e) => {
           if (overlap) {
             newMergedTile(newTileChild, delay);
             nums[row][newCol] *= 2;
+            hasMerged[row][newCol] = true;
           } // if
-          clearClassName(newTileChild, delay, overlap);
+          resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
       addRandomTileAfterMoves(maxDelay, validMove);
+      resetHasMerged();
       break;
     } // Down
   } // switch
