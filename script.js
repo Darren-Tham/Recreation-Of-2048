@@ -1,10 +1,12 @@
 const ROWS = 4;
 const COLS = 4;
 const DURATION = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue("--DURATION"));
+
 const board = document.getElementById("board");
 let tiles = new Array(ROWS).fill().map(() => new Array(COLS).fill(null));
 let nums = new Array(ROWS).fill().map(() => new Array(COLS).fill(0));
 let hasMerged = new Array(ROWS).fill().map(() => new Array(COLS).fill(false));
+let keyPressed = false;
 
 // -------------------- Main Method --------------------
 
@@ -78,7 +80,8 @@ function restartGame() {
 
 // Adds a color to the tile
 function addColor(tile) {
-  tile.style.background = "hsl(200, 100%, " + (100 - +tile.innerText * 5) + "%)";
+  const num = Math.log(+tile.innerText);
+  tile.style.background = "hsl(200, 100%, " + (100 - num * 5) + "%)";
 } // addColor
 
 // Adds the slide effect to the tile
@@ -103,15 +106,6 @@ function addNewTile(num) {
   addColor(newTileChild);
   return newTileChild;
 } // addNewTile
-
-// Adds a random tile after each move
-function addRandomTileAfterMoves(maxDelay, validMove) {
-  if (!validMove) return;
-
-  setTimeout(() => {
-    randomTile();
-  }, maxDelay);
-} // addRandomTileAfterMoves
 
 // Updates the new merged tile
 function newMergedTile(tile, delay) {
@@ -144,8 +138,11 @@ window.addEventListener("keydown", (e) => {
     case "w":
     case "W":
     case "ArrowUp": {
+      if (keyPressed) return;
+      
       let maxDelay = 0;
       let validMove = false;
+      keyPressed = true;
       for (let col = 0; col < COLS; col++) {
         for (let row = 1; row < ROWS; row++) {
           // if it is not a tile, continue
@@ -206,16 +203,24 @@ window.addEventListener("keydown", (e) => {
           } // if
           resetClassName(newTileChild, delay, overlap);
         } // for
-      } // for
-      addRandomTileAfterMoves(maxDelay, validMove);
-      resetHasMerged();
+      } // for      
+      setTimeout(() => {
+        if (validMove) {
+          randomTile();
+        } // if
+        keyPressed = false;
+        resetHasMerged();
+      }, maxDelay) // setTimeout
       break;
     } // Up
     case "a":
     case "A":
     case "ArrowLeft": {
+      if (keyPressed) return;
+
       let maxDelay = 0;
       let validMove = false;
+      keyPressed = true;
       for (let row = 0; row < ROWS; row++) {
         for (let col = 1; col < COLS; col++) {
           // if it is not a tile, continue
@@ -277,15 +282,23 @@ window.addEventListener("keydown", (e) => {
           resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
-      addRandomTileAfterMoves(maxDelay, validMove);
-      resetHasMerged();
+      setTimeout(() => {
+        if (validMove) {
+          randomTile();
+        } // if
+        keyPressed = false;
+        resetHasMerged();
+      }, maxDelay) // setTimeout
       break;
     } // Left
     case "s":
     case "S":
     case "ArrowDown": {
+      if (keyPressed) return;
+
       let maxDelay = 0;
       let validMove = false;
+      keyPressed = true;
       for (let col = 0; col < COLS; col++) {
         for (let row = ROWS - 1; row >= 0; row--) {
           // if it is not a tile, continue
@@ -346,15 +359,22 @@ window.addEventListener("keydown", (e) => {
           resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
-      addRandomTileAfterMoves(maxDelay, validMove);
-      resetHasMerged();
-      break;
+      setTimeout(() => {
+        if (validMove) {
+          randomTile();
+        } // if
+        keyPressed = false;
+        resetHasMerged();
+      }, maxDelay) // setTimeout
     } // Down
     case "d":
     case "D":
     case "ArrowRight": {
+      if (keyPressed) return;
+
       let maxDelay = 0;
       let validMove = false;
+      keyPressed = true;
       for (let row = 0; row < ROWS; row++) {
         for (let col = COLS - 1; col >= 0; col--) {
           // if it is not a tile, continue
@@ -415,8 +435,13 @@ window.addEventListener("keydown", (e) => {
           resetClassName(newTileChild, delay, overlap);
         } // for
       } // for
-      addRandomTileAfterMoves(maxDelay, validMove);
-      resetHasMerged();
+      setTimeout(() => {
+        if (validMove) {
+          randomTile();
+        } // if
+        keyPressed = false;
+        resetHasMerged();
+      }, maxDelay) // setTimeout
       break;
     } // Down
   } // switch
