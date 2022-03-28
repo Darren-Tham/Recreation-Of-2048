@@ -131,10 +131,6 @@ function clearClassName(tile, delay, overlap) {
   }, delay); // setTimeout
 } // clearClassName
 
-function isTile(row, col) {
-  return !tiles[row][col].firstChild;
-} // isTile
-
 window.addEventListener("keydown", (e) => {
   switch (e.key) {
     case "w":
@@ -145,7 +141,7 @@ window.addEventListener("keydown", (e) => {
       for (let col = 0; col < COLS; col++) {
         for (let row = 1; row < ROWS; row++) {
           // if it is not a tile, continue
-          if (isTile(row, col)) {
+          if (!nums[row][col]) {
             continue;
           } // if
 
@@ -155,27 +151,32 @@ window.addEventListener("keydown", (e) => {
 
           // while loop breaks when it reaches the top of the board
           // or when it reaches a tile
-          while (newRow !== 0 && isTile(newRow - 1, col)) {
+          while (newRow && !nums[newRow - 1][col]) {
             newRow--;
           } // while
 
           // if the tile above is the same number, make the tile above the newTile
-          if (newRow !== 0 && tiles[newRow - 1][col].firstChild?.innerText === currentTile.firstChild.innerText) {
+          if (newRow && nums[newRow - 1][col] === nums[row][col]) {
             newRow--;
             overlap = true;
           } // if
 
           const distance = row - newRow;
-          if (distance === 0) {
+          if (!distance) {
             continue;
           } // if
 
           validMove = true;
 
+          const num = nums[row][col];
+          nums[newRow][col] = num;
+
           const newTile = tiles[newRow][col];
-          const newTileChild = addNewTile(currentTile.firstChild.innerText);
-          currentTile.removeChild(currentTile.firstChild);
+          const newTileChild = addNewTile(num);
           newTile.append(newTileChild);
+
+          currentTile.removeChild(currentTile.firstChild);
+          nums[row][col] = 0;
 
           // Setting up sliding duration
           document.documentElement.style.setProperty("--ONE", "translateY(calc(var(--GAP) + var(--SIZE)))");
@@ -191,6 +192,7 @@ window.addEventListener("keydown", (e) => {
 
           if (overlap) {
             newMergedTile(newTileChild, delay);
+            nums[newRow][col] *= 2;
           } // if
           clearClassName(newTileChild, delay, overlap);
         } // for
@@ -206,7 +208,7 @@ window.addEventListener("keydown", (e) => {
       for (let row = 0; row < ROWS; row++) {
         for (let col = 1; col < COLS; col++) {
           // if it is not a tile, continue
-          if (isTile(row, col)) {
+          if (!nums[row][col]) {
             continue;
           } // if
 
@@ -216,27 +218,32 @@ window.addEventListener("keydown", (e) => {
 
           // while loop breaks when it reaches the left side of the board
           // or when it reaches a tile
-          while (newCol !== 0 && isTile(row, newCol - 1)) {
+          while (newCol && !nums[row][newCol - 1]) {
             newCol--;
           } // while
 
           // if the tile to the left is the same number, make the tile above the newTile
-          if (newCol !== 0 && tiles[row][newCol - 1].firstChild?.innerText === currentTile.firstChild.innerText) {
+          if (newCol && nums[row][newCol - 1] === nums[row][col]) {
             newCol--;
             overlap = true;
           } // if
 
           const distance = col - newCol;
-          if (distance === 0) {
+          if (!distance) {
             continue;
-          } else {
-            validMove = true;
-          } // if-else
+          } // if
+
+          validMove = true;
+
+          const num = nums[row][col];
+          nums[row][newCol] = num;
 
           const newTile = tiles[row][newCol];
-          const newTileChild = addNewTile(currentTile.firstChild.innerText);
-          currentTile.removeChild(currentTile.firstChild);
+          const newTileChild = addNewTile(num);
           newTile.append(newTileChild);
+
+          currentTile.removeChild(currentTile.firstChild);
+          nums[row][col] = 0;
 
           // Setting up sliding duration
           document.documentElement.style.setProperty("--ONE", "translateX(calc(var(--GAP) + var(--SIZE)))");
@@ -252,6 +259,7 @@ window.addEventListener("keydown", (e) => {
 
           if (overlap) {
             newMergedTile(newTileChild, delay);
+            nums[row][newCol] *= 2;
           } // if
           clearClassName(newTileChild, delay, overlap);
         } // for
@@ -267,7 +275,7 @@ window.addEventListener("keydown", (e) => {
       for (let col = 0; col < COLS; col++) {
         for (let row = ROWS - 1; row >= 0; row--) {
           // if it is not a tile, continue
-          if (isTile(row, col)) {
+          if (!nums[row][col]) {
             continue;
           } // if
 
@@ -277,27 +285,32 @@ window.addEventListener("keydown", (e) => {
 
           // while loop breaks when it reaches the bottom of the board
           // or when it reaches a tile
-          while (newRow !== ROWS - 1 && isTile(newRow + 1, col)) {
+          while (newRow !== ROWS - 1 && !nums[newRow + 1][col]) {
             newRow++;
           } // while
 
           // if the tile below is the same number, make the tile above the newTile
-          if (newRow !== ROWS - 1 && tiles[newRow + 1][col].firstChild?.innerText === currentTile.firstChild.innerText) {
+          if (newRow !== ROWS - 1 && nums[newRow + 1][col] === nums[row][col]) {
             newRow++;
             overlap = true;
           } // if
 
           const distance = newRow - row;
-          if (distance === 0) {
+          if (!distance) {
             continue;
-          } else {
-            validMove = true;
-          } // if-else
+          }
+
+          validMove = true;
+
+          const num = nums[row][col];
+          nums[newRow][col] = num;
 
           const newTile = tiles[newRow][col];
-          const newTileChild = addNewTile(currentTile.firstChild.innerText);
-          currentTile.removeChild(currentTile.firstChild);
+          const newTileChild = addNewTile(num);
           newTile.append(newTileChild);
+
+          currentTile.removeChild(currentTile.firstChild);
+          nums[row][col] = 0;
 
           // Setting up sliding duration
           document.documentElement.style.setProperty("--ONE", "translateY(calc(var(--GAP) + var(--SIZE) * -1))");
@@ -313,6 +326,7 @@ window.addEventListener("keydown", (e) => {
 
           if (overlap) {
             newMergedTile(newTileChild, delay);
+            nums[newRow][col] *= 2;
           } // if
           clearClassName(newTileChild, delay, overlap);
         } // for
@@ -328,7 +342,7 @@ window.addEventListener("keydown", (e) => {
       for (let row = 0; row < ROWS; row++) {
         for (let col = COLS - 1; col >= 0; col--) {
           // if it is not a tile, continue
-          if (isTile(row, col)) {
+          if (!nums[row][col]) {
             continue;
           } // if
 
@@ -338,27 +352,32 @@ window.addEventListener("keydown", (e) => {
 
           // while loop breaks when it reaches the bottom of the board
           // or when it reaches a tile
-          while (newCol !== COLS - 1 && isTile(row, newCol + 1)) {
+          while (newCol !== COLS - 1 && !nums[row][newCol + 1]) {
             newCol++;
           } // while
 
           // if the tile below is the same number, make the tile above the newTile
-          if (newCol !== COLS - 1 && tiles[row][newCol + 1].firstChild?.innerText === currentTile.firstChild.innerText) {
+          if (newCol !== COLS - 1 && nums[row][newCol + 1] === nums[row][col]) {
             newCol++;
             overlap = true;
           } // if
 
           const distance = newCol - col;
-          if (distance === 0) {
+          if (!distance) {
             continue;
-          } else {
-            validMove = true;
-          } // if-else
+          } // if
+
+          validMove = true;
+
+          const num = nums[row][col];
+          nums[row][newCol] = num;
 
           const newTile = tiles[row][newCol];
-          const newTileChild = addNewTile(currentTile.firstChild.innerText);
-          currentTile.removeChild(currentTile.firstChild);
+          const newTileChild = addNewTile(num);
           newTile.append(newTileChild);
+
+          currentTile.removeChild(currentTile.firstChild);
+          nums[row][col] = 0;
 
           // Setting up sliding duration
           document.documentElement.style.setProperty("--ONE", "translateX(calc(var(--GAP) + var(--SIZE) * -1))");
@@ -374,6 +393,7 @@ window.addEventListener("keydown", (e) => {
 
           if (overlap) {
             newMergedTile(newTileChild, delay);
+            nums[row][newCol] *= 2;
           } // if
           clearClassName(newTileChild, delay, overlap);
         } // for
