@@ -14,9 +14,6 @@
   --SIZE: 20vmin;
   --GAP: 1.5vmin;
   --DURATION: 100ms;
-  --ONE: SET_IN_JS;
-  --TWO: SET_IN_JS;
-  --THREE: SET_IN_JS;
 }
 
 body {
@@ -51,26 +48,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;  
+  position: absolute;
 }
 
 .popout {
   animation: popout var(--DURATION);
-  animation-fill-mode: forwards;
-}
-
-.slide-one {
-  animation: slide-one var(--DURATION) linear;
-  animation-fill-mode: forwards;
-}
-
-.slide-two {
-  animation: slide-two calc(var(--DURATION) * 2) linear;
-  animation-fill-mode: forwards;
-}
-
-.slide-three {
-  animation: slide-three calc(var(--DURATION) * 3) linear;
   animation-fill-mode: forwards;
 }
 
@@ -85,24 +67,6 @@ body {
   }
   to {
     transform: scale(1);
-  }
-}
-
-@keyframes slide-one {
-  from {
-    transform: var(--ONE);
-  }
-}
-
-@keyframes slide-two {
-  from {
-    transform: var(--TWO);
-  }
-}
-
-@keyframes slide-three {
-  from {
-    transform: var(--THREE);
   }
 }
 
