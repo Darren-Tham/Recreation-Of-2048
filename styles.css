@@ -24,6 +24,7 @@ body {
   border-radius: var(--RADIUS);
   gap: var(--GAP);
   padding: var(--GAP);
+  position: relative;
 }
 
 .cell {
@@ -31,4 +32,26 @@ body {
   border-radius: var(--RADIUS);
   width: var(--SIZE);
   height: var(--SIZE);
+}
+
+.tile {
+  width: var(--SIZE);
+  height: var(--SIZE);
+  border-radius: var(--RADIUS);
+  position: absolute;
+  display: grid;
+  place-items: center;
+  top: calc(var(--Y) * (var(--SIZE) + var(--GAP)) + var(--GAP));
+  left: calc(var(--X) * (var(--SIZE) + var(--GAP)) + var(--GAP));
+  animation: popout 100ms;
+  animation-fill-mode: forwards;
+}
+
+@keyframes popout {
+  from {
+    transform: scale(0)
+  }
+  to {
+    transform: scale(1)
+  }
 }
