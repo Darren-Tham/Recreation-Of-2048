@@ -43,7 +43,15 @@ body {
   place-items: center;
   top: calc(var(--Y) * (var(--SIZE) + var(--GAP)) + var(--GAP));
   left: calc(var(--X) * (var(--SIZE) + var(--GAP)) + var(--GAP));
-  animation: popout 100ms;
+  animation: popout var(--DURATION);
+  animation-fill-mode: forwards;
+  transition-property: top, left;
+  transition-duration: calc(var(--DIST) * var(--DURATION));
+  transition-timing-function: linear;
+}
+
+.merge {
+  animation: merge var(--DURATION) ease var(--DELAY);
   animation-fill-mode: forwards;
 }
 
@@ -52,6 +60,15 @@ body {
     transform: scale(0)
   }
   to {
+    transform: scale(1)
+  }
+}
+
+@keyframes merge {
+  80% {
+    transform: scale(1.2)
+  }
+  100% {
     transform: scale(1)
   }
 }
