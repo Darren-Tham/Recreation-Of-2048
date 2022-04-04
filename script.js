@@ -1,347 +1,333 @@
-// ADD BETTER METHOD FOR SPAWNING NEW BLOCK
-// TRY TO FIT ALL IN ONE METHOD
-// ADD SCORE
-// CHANGE COLORS POSSIBLY
+const ROWS = 4
+const COLS = 4
+const DURATION = 100
 
-const ROWS = 4;
-const COLS = 4;
-const DURATION = parseInt(window.getComputedStyle(document.documentElement).getPropertyValue("--DURATION"));
+class Grid {
+	// Instance Variables:
+	// gridElement
+	// tiles
+	// keyPressed
 
-const board = document.getElementById("board");
-const css = window.document.styleSheets[0];
-let tiles = new Array(ROWS).fill().map(() => new Array(COLS).fill(null));
-let nums = new Array(ROWS).fill().map(() => new Array(COLS).fill(0));
-let hasMerged = new Array(ROWS).fill().map(() => new Array(COLS).fill(false));
-let keyPressed = false;
+	constructor(gridElement) {
+		this.gridElement = gridElement
+		this.tiles = new Array(ROWS).fill().map(() => new Array(COLS).fill(null))
+		this.keyPressed = false
+		this.emptyCells()
 
-// -------------------- Main Method --------------------
+		gridElement.style.setProperty('--ROWS', ROWS)
+		gridElement.style.setProperty('--COLS', COLS)
+		gridElement.style.setProperty('--DURATION', `${DURATION}ms`)
+	} // constructor
 
-begin();
+	// Fill the grid with empty gray cells (placeholders)
+	emptyCells() {
+		for (let i = 0; i < ROWS * COLS; i++) {
+			const cell = document.createElement('div')
+			cell.classList.add('cell')
+			this.gridElement.append(cell)
+		} // for
+	} // emptyCells
 
-// -------------------- Functions --------------------
+	// Spawns a random tile in the grid
+	randomTile() {
+		const availableCells = []
+		this.tiles.forEach((row, y) => {
+			row.forEach((tile, x) => {
+				if (!tile) {
+					availableCells.push({ x, y })
+				} // if
+			}) // forEach
+		}) // forEach
+		const randomCoord = availableCells[Math.floor(Math.random() * availableCells.length)]
 
-document.documentElement.style.setProperty("--ROWS", ROWS);
-document.documentElement.style.setProperty("--COLS", COLS);
+		const randomTile = new Tile(randomCoord.x, randomCoord.y)
+		this.tiles[randomCoord.y][randomCoord.x] = randomTile
+		this.gridElement.append(randomTile.tileElement)
+	} // randomTile
 
-// Setting up tiles array and HTML document
-function setup() {
-  tiles.forEach((row, i) => {
-    for (let j in row) {
-      const tile = document.createElement("div");
-      tile.classList.add("tile-setup");
-      board.append(tile);
-      tiles[i][j] = tile;
-    } // for
-  }); // forEach
-} // setup
+	// Removes most properties from tiles to keep clean
+	resetProperties() {
+		setTimeout(() => {
+			this.tiles.forEach(row => {
+				row.map(tile => {
+					if (tile) {
+						const tileElement = tile.tileElement
+						tileElement.classList.remove('merge')
+						tileElement.style.removeProperty('animation')
+						tileElement.style.removeProperty('--DELAY')
+						tileElement.style.removeProperty('--DIST')
+					}
+				}) // map
+			}) // forEach
+		}, DURATION) // setTimeout
+	} // resetProperties
 
-// Adds a random tile
-function randomTile() {
-  const i = Math.floor(Math.random() * ROWS);
-  const j = Math.floor(Math.random() * COLS);
-  const tile = tiles[i][j];
-  if (tile.firstChild) {
-    return randomTile();
-  } else {
-    const tileChild = document.createElement("div");
-    tileChild.classList.add("tile", "popout");
-    const num = Math.random() <= 0.1 ? 4 : 2;
-    nums[i][j] = num;
-    tileChild.innerText = num;
-    addColor(tileChild);
-    tile.append(tileChild);
-    setTimeout(() => (tileChild.className = "tile"), DURATION);
-  } // if-else
-} // randomTile
+	// Checks if the tile is in bounds
+	inBounds(direction, newDim, row, col) {
+		switch (direction) {
+			case 'up':
+				return newDim && !this.tiles[newDim - 1][col]
+			case 'left':
+				return newDim && !this.tiles[row][newDim - 1]
+			case 'down':
+				return newDim < ROWS - 1 && !this.tiles[newDim + 1][col]
+			case 'right':
+				return newDim < COLS - 1 && !this.tiles[row][newDim + 1]
+		} // switch
+	} // checkInBounds
 
-// Setup the board using setup() and add two random tiles in the board
-// If two tiles are 4, then the game will restart
-function begin() {
-  setup();
-  randomTile();
-  randomTile();
+	// Checks if the tile can merge with another tile
+	canMerge(direction, newDim, row, col) {
+		const currentTile = this.tiles[row][col]
+		let nextTile
+		switch (direction) {
+			case 'up':
+				nextTile = newDim - 1 >= 0 ? this.tiles[newDim - 1][col] : null
+				break
+			case 'left':
+				nextTile = newDim - 1 >= 0 ? this.tiles[row][newDim - 1] : null
+				break
+			case 'down':
+				nextTile = newDim + 1 < ROWS ? this.tiles[newDim + 1][col] : null
+				break
+			case 'right':
+				nextTile = newDim + 1 < COLS ? this.tiles[row][newDim + 1] : null
+				break
+		} // switch
+		return currentTile.tileElement.innerText === nextTile?.tileElement.innerText && !nextTile.tileElement.classList.contains('merge')
+	} // checkCanMerge
 
-  let fourCount = 0;
-  tiles.forEach((row, i) => {
-    for (let j in row) {
-      const tile = tiles[i][j];
-      if (tile.innerText === "4") {
-        fourCount++;
-      } // if
-    } // for
-    if (fourCount === 2) {
-      restartGame();
-      begin();
-    } // if
-  }); // forEach
-} // begin
+	// Updates newDim when there is an available cell
+	updateNewDim(direction, newDim) {
+		switch (direction) {
+			case 'up':
+			case 'left':
+				newDim--
+				break
+			case 'down':
+			case 'right':
+				newDim++
+				break
+		} // switch
+		return newDim
+	} // updateNewDim
 
-// Restarts the game
-function restartGame() {
-  board.innerHTML = "";
-  tiles = new Array(ROWS).fill(null).map(() => new Array(COLS).fill(null));
-  nums = new Array(ROWS).fill().map(() => new Array(COLS).fill(0));
-  resetHasMerged();
-} // restartGame
+	// Get new dimension of tile
+	getNewDim(direction, row, col) {
+		let newDim
+		switch (direction) {
+			case 'up':
+			case 'down':
+				newDim = row
+				break
+			case 'left':
+			case 'right':
+				newDim = col
+				break
+		} // switch
 
-// Adds a color to the tile
-function addColor(tile) {
-  const num = Math.log(+tile.innerText);
-  tile.style.background = "hsl(20, 100%, " + (100 - num * 5) + "%)";
-} // addColor
+		while (this.inBounds(direction, newDim, row, col)) {
+			newDim = this.updateNewDim(direction, newDim)
+		} // while
+		if (this.canMerge(direction, newDim, row, col)) {
+			newDim = this.updateNewDim(direction, newDim)
+		} // if
+		return newDim
+	} // getNewRow
 
-// Adds the slide effect to the tile
-function addSlide(tile, distance) {
-  switch (distance) {
-    case 1:
-      tile.classList.add("slide-one");
-      break;
-    case 2:
-      tile.classList.add("slide-two");
-      break;
-    case 3:
-      tile.classList.add("slide-three");
-  } // switch
-} // addSlide
+	// Gets the distance from old dimension to new dimension
+	getDist(direction, row, col, newDim) {
+		switch (direction) {
+			case 'up':
+			case 'down':
+				return Math.abs(row - newDim)
+			case 'left':
+			case 'right':
+				return Math.abs(col - newDim)
+		} // switch
+	} // getDist
 
-// Adds a new tile DOM element
-function addNewTile(num) {
-  const newTileChild = document.createElement("div");
-  newTileChild.classList.add("tile");
-  newTileChild.innerText = num;
-  addColor(newTileChild);
-  return newTileChild;
-} // addNewTile
+	// Applies changes to the new tile
+	// Removes old tile, add merge effect to new tile, change position, add duration
+	applyChanges(direction, row, col, newDim, delay, dist) {
+		const currentTile = this.tiles[row][col]
+		switch (direction) {
+			case 'up':
+			case 'down':
+				if (this.tiles[newDim][col]) {
+					this.tiles[newDim][col].remove(delay)
+					currentTile.merge(delay)
+				} // if
+				currentTile.changePosition(col, newDim)
+				currentTile.addDuration(dist)
 
-// Updates the new merged tile
-function newMergedTile(tile, delay) {
-  setTimeout(() => {
-    tile.classList.add("merge");
-    tile.innerText *= 2;
-    addColor(tile);
-    tile.previousSibling.remove();
-  }, delay); // setTimeout
-} // newMergedTile
+				this.tiles[newDim][col] = currentTile
+				this.tiles[row][col] = null
+				break
+			case 'left':
+			case 'right':
+				if (this.tiles[row][newDim]) {
+					this.tiles[row][newDim].remove(delay)
+					currentTile.merge(delay)
+				} // if
+				currentTile.changePosition(newDim, row)
+				currentTile.addDuration(dist)
 
-function resetCSS(cssRulesCount) {
-  for (let i = 0; i < cssRulesCount; i++) {
-    css.deleteRule(css.cssRules.length - 1);
-  } // for
-} // resetCSS
+				this.tiles[row][newDim] = currentTile
+				this.tiles[row][col] = null
+				break
+		} // switch
+	} // applyChanges
 
-function resetClassName(tile, delay) {
-  setTimeout(() => (tile.className = "tile"), delay);
-} // resetClassName
+	// Sliding the tiles together
+	slide(direction, row, col) {
+		if (!this.tiles[row][col]) return { delay: 0, validMove: false }
 
-// Resets the boolean array hasMerged to all false
-function resetHasMerged() {
-  hasMerged = new Array(ROWS).fill().map(() => new Array(COLS).fill(false));
-} // resetHasMerged
+		const newDim = this.getNewDim(direction, row, col)
+		const dist = this.getDist(direction, row, col, newDim)
+		if (!dist) return { delay: 0, validMove: false }
 
-function slideAnimation(direction, distance, num, tile) {
-  let axis;
-  switch (direction) {
-    case "up":
-    case "down": {
-      axis = "Y";
-      break;
-    } // up
-    case "left":
-    case "right": {
-      axis = "X";
-      break;
-    } // left
-  } // switch
+		const delay = DURATION * dist
+		this.applyChanges(direction, row, col, newDim, delay, dist)
+		return { delay, validMove: true }
+	} // slide
 
-  css.insertRule(
-    `
-    .slide-${num} {
-      animation: slide-${num} calc(var(--DURATION) * ${distance}) linear;
-      animation-fill-mode: forwards;
-    }
-  `,
-    css.cssRules.length
-  ); // insertRule
+	// Updates board when user does a valid action
+	update(direction) {
+		if (this.keyPressed) return
 
-  if (direction === "down" || direction === "right") {
-    distance *= -1;
-  } // if
+		this.keyPressed = true
+		let maxDelay = 0
+		let validMove = false
 
-  css.insertRule(
-    `
-  @keyframes slide-${num} {
-    from {
-      transform: translate${axis}(calc((var(--GAP) + var(--SIZE)) * ${distance}))
-    }
-  }
-  `,
-    css.cssRules.length
-  ); // insertRule
+		switch (direction) {
+			case 'up':
+				for (let col = 0; col < COLS; col++) {
+					for (let row = 1; row < ROWS; row++) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'left':
+				for (let row = 0; row < ROWS; row++) {
+					for (let col = 1; col < COLS; col++) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'down':
+				for (let col = 0; col < COLS; col++) {
+					for (let row = ROWS - 2; row >= 0; row--) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'right':
+				for (let row = 0; row < ROWS; row++) {
+					for (let col = COLS - 2; col >= 0; col--) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+		} // switch
+		setTimeout(() => {
+			if (validMove) {
+				this.randomTile()
+				this.resetProperties()
+				setTimeout(() => (this.keyPressed = false), DURATION)
+			} else {
+				this.keyPressed = false
+			} // if-else
+		}, maxDelay) // setTimeout
+	} // update
+} // Grid
 
-  tile.classList.add(`slide-${num}`);
-} // slideAnimation
+class Tile {
+	// Instance Variable
+	// tileElement - DOM Element
 
-function slide(direction) {
-  if (keyPressed) return;
+	constructor(x, y) {
+		this.tileElement = document.createElement('div')
+		this.tileElement.classList.add('tile')
+		this.tileElement.innerText = Math.random() <= 0.1 ? 4 : 2
+		this.tileElement.style.animation = 'popout var(--DURATION)'
+		this.addColor()
+		this.changePosition(x, y)
+	} // constructor
 
-  let maxDelay = 0;
-  let validMove = false;
-  keyPressed = true;
-  let cssRulesCount = 0;
+	// Changes coordinates of tile
+	changePosition(x, y) {
+		this.tileElement.style.setProperty('--X', x)
+		this.tileElement.style.setProperty('--Y', y)
+	} // changePosition
 
-  switch (direction) {
-    case "right": {
-      rotate90();
-      break;
-    } // right
-    case "down": {
-      rotate180();
-      break;
-    } // down
-    case "left": {
-      rotate270();
-    } // left
-  } // switch
+	// Adds duration speed when sliding
+	addDuration(dist) {
+		this.tileElement.style.setProperty('--DIST', dist)
+	} // changeDuration
 
-  for (let col = 0; col < COLS; col++) {
-    for (let row = 1; row < ROWS; row++) {
-      // if it is not a tile, continue
-      if (!nums[row][col]) continue;
+	// Adds a color to a tile
+	addColor() {
+		const num = 100 - Math.log(this.tileElement.innerText) * 5
+		this.tileElement.style.background = `hsl(200, 100%, ${num}%)`
+	} // addColor
 
-      const currentTile = tiles[row][col];
-      let newRow = row;
-      let overlap = false;
+	// Applies the merge animation
+	merge(delay) {
+		this.tileElement.style.setProperty('--DELAY', `${delay}ms`)
+		this.tileElement.style.zIndex = 1
+		this.tileElement.classList.add('merge')
+		this.tileElement.style.animation = 'merge var(--DURATION) ease var(--DELAY)'
 
-      // while loops breaks when it reaches the top of the board or when it reaches a tile
-      while (newRow && !nums[newRow - 1][col]) {
-        newRow--;
-      } // while
+		setTimeout(() => {
+			this.tileElement.innerText *= 2
+			this.addColor()
+			this.tileElement.style.removeProperty('z-index')
+		}, delay) //setTimeout
+	} // merge
 
-      if (newRow && !hasMerged[newRow - 1][col] && nums[newRow - 1][col] === nums[row][col]) {
-        newRow--;
-        overlap = true;
-      } // if
+  // Removes the DOM element
+	remove(delay) {
+		setTimeout(() => {
+			this.tileElement.remove()
+		}, delay) // setTimeout
+	} // remove
+} // Tile
 
-      const distance = row - newRow;
-      if (!distance) continue;
+// ------------------------------ Begin Program ------------------------------
 
-      validMove = true;
+const grid = new Grid(document.getElementById('grid'))
+grid.randomTile()
+grid.randomTile()
 
-      const num = nums[row][col];
-      nums[newRow][col] = num;
-
-      const newTileChild = addNewTile(num);
-      tiles[newRow][col].append(newTileChild);
-
-      currentTile.removeChild(currentTile.firstChild);
-      nums[row][col] = 0;
-
-      let delay = DURATION * distance;
-      maxDelay = Math.max(maxDelay, delay);
-
-      slideAnimation(direction, distance, cssRulesCount, newTileChild);
-      cssRulesCount += 2;
-
-      if (overlap) {
-        newMergedTile(newTileChild, delay);
-        nums[newRow][col] *= 2;
-        hasMerged[newRow][col] = true;
-        delay += DURATION;
-      } // if
-      resetClassName(newTileChild, delay);
-    } // for
-  } // for
-
-  setTimeout(() => {
-    if (validMove) {
-      randomTile();
-    } // if
-    keyPressed = false;
-    resetHasMerged();
-    resetCSS(cssRulesCount);
-  }, maxDelay);
-
-  switch (direction) {
-    case "right": {
-      rotate270();
-      break;
-    } // right
-    case "down": {
-      rotate180();
-      break;
-    } // down
-    case "left": {
-      rotate90();
-    } // left
-  } // switch
-} // slide
-
-window.addEventListener("keydown", (e) => {
-  switch (e.key) {
-    case "w":
-    case "W":
-    case "ArrowUp":
-      return slide("up");
-    case "a":
-    case "A":
-    case "ArrowLeft":
-      return slide("left");
-    case "s":
-    case "S":
-    case "ArrowDown":
-      return slide("down");
-    case "d":
-    case "D":
-    case "ArrowRight":
-      return slide("right");
-  } // switch
-}); // addEventListener
-
-// Rotates arrays by 90
-function rotate90() {
-  tiles.map((row) => row.reverse());
-  tiles = switchIndicies(tiles);
-
-  nums.map((row) => row.reverse());
-  nums = switchIndicies(nums);
-
-  hasMerged.map((row) => row.reverse());
-  hasMerged = switchIndicies(hasMerged);
-} // rotate90
-
-// Rotates arrays by 180 degrees
-function rotate180() {
-  for (let i = 0, j = ROWS - 1; i < j; i++, j--) {
-    let temp = tiles[i];
-    tiles[i] = tiles[j];
-    tiles[j] = temp;
-
-    temp = nums[i];
-    nums[i] = nums[j];
-    nums[j] = temp;
-
-    temp = hasMerged[i];
-    hasMerged[i] = hasMerged[j];
-    hasMerged[j] = temp;
-  } // for
-} // rotateBoard180
-
-// Rotates arrays by 270 degrees
-function rotate270() {
-  tiles = switchIndicies(tiles).map((row) => row.reverse());
-
-  nums = switchIndicies(nums).map((row) => row.reverse());
-
-  hasMerged = switchIndicies(hasMerged).map((row) => row.reverse());
-} // rotateBoard270
-
-// Creates a new array by switching the indicies of tiles
-function switchIndicies(matrix) {
-  const rotatedArr = new Array(ROWS).fill().map(() => new Array(COLS).fill(null));
-  tiles.forEach((row, i) => {
-    for (let j in row) {
-      rotatedArr[j][i] = matrix[i][j];
-    } // for
-  }); // forEach
-  return rotatedArr;
-} // switchIndicies
+addEventListener('keydown', e => {
+	switch (e.key) {
+		case 'w':
+		case 'W':
+		case 'ArrowUp':
+			grid.update('up')
+			break
+		case 'a':
+		case 'A':
+		case 'ArrowLeft':
+			grid.update('left')
+			break
+		case 's':
+		case 'S':
+		case 'ArrowDown':
+			grid.update('down')
+			break
+		case 'd':
+		case 'D':
+		case 'ArrowRight':
+			grid.update('right')
+			break
+	} // switch
+}) // addEventListener
