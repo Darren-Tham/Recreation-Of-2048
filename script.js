@@ -1,11 +1,17 @@
 const ROWS = 4
 const COLS = 4
-const DURATION = 500
+const DURATION = 100
 
 class Grid {
+	// Instance Variables:
+	// gridElement
+	// tiles
+	// keyPressed
+
 	constructor(gridElement) {
 		this.gridElement = gridElement
 		this.tiles = new Array(ROWS).fill().map(() => new Array(COLS).fill(null))
+		this.keyPressed = false
 		this.emptyCells()
 
 		gridElement.style.setProperty('--ROWS', ROWS)
@@ -13,6 +19,7 @@ class Grid {
 		gridElement.style.setProperty('--DURATION', `${DURATION}ms`)
 	} // constructor
 
+	// Fill the grid with empty gray cells (placeholders)
 	emptyCells() {
 		for (let i = 0; i < ROWS * COLS; i++) {
 			const cell = document.createElement('div')
@@ -21,6 +28,7 @@ class Grid {
 		} // for
 	} // emptyCells
 
+	// Spawns a random tile in the grid
 	randomTile() {
 		const availableCells = []
 		this.tiles.forEach((row, y) => {
@@ -34,122 +42,292 @@ class Grid {
 
 		const randomTile = new Tile(randomCoord.x, randomCoord.y)
 		this.tiles[randomCoord.y][randomCoord.x] = randomTile
-		this.gridElement.append(randomTile.tile)
+		this.gridElement.append(randomTile.tileElement)
 	} // randomTile
 
-	// Returns the new row of the tile
-	getNewRow(row, col) {
-		let newRow = row
-		// while loop breaks when it reaches the edge of the board
-		// or when it reaches a tile
-		while (newRow && !this.tiles[newRow - 1][col]) {
-			newRow--
-		} // while
+	// Removes most properties from tiles to keep clean
+	resetProperties() {
+		setTimeout(() => {
+			this.tiles.forEach(row => {
+				row.map(tile => {
+					if (tile) {
+						const tileElement = tile.tileElement
+						tileElement.classList.remove('merge')
+						tileElement.style.removeProperty('animation')
+						tileElement.style.removeProperty('--DELAY')
+						tileElement.style.removeProperty('--DIST')
+					}
+				}) // map
+			}) // forEach
+		}, DURATION) // setTimeout
+	} // resetProperties
 
-		// if the next tile has the same number as the currentTile and
-		// it has not merged yet
-		if (newRow && this.tiles[row][col]?.tile?.innerText === this.tiles[newRow - 1][col]?.tile?.innerText) {
-			newRow--
+	// Checks if the tile is in bounds
+	inBounds(direction, newDim, row, col) {
+		switch (direction) {
+			case 'up':
+				return newDim && !this.tiles[newDim - 1][col]
+			case 'left':
+				return newDim && !this.tiles[row][newDim - 1]
+			case 'down':
+				return newDim < ROWS - 1 && !this.tiles[newDim + 1][col]
+			case 'right':
+				return newDim < COLS - 1 && !this.tiles[row][newDim + 1]
+		} // switch
+	} // checkInBounds
+
+	// Checks if the tile can merge with another tile
+	canMerge(direction, newDim, row, col) {
+		const currentTile = this.tiles[row][col]
+		let nextTile
+		switch (direction) {
+			case 'up':
+				nextTile = newDim - 1 >= 0 ? this.tiles[newDim - 1][col] : null
+				break
+			case 'left':
+				nextTile = newDim - 1 >= 0 ? this.tiles[row][newDim - 1] : null
+				break
+			case 'down':
+				nextTile = newDim + 1 < ROWS ? this.tiles[newDim + 1][col] : null
+				break
+			case 'right':
+				nextTile = newDim + 1 < COLS ? this.tiles[row][newDim + 1] : null
+				break
+		} // switch
+		return currentTile.tileElement.innerText === nextTile?.tileElement.innerText && !nextTile.tileElement.classList.contains('merge')
+	} // checkCanMerge
+
+	// Updates newDim when there is an available cell
+	updateNewDim(direction, newDim) {
+		switch (direction) {
+			case 'up':
+			case 'left':
+				newDim--
+				break
+			case 'down':
+			case 'right':
+				newDim++
+				break
+		} // switch
+		return newDim
+	} // updateNewDim
+
+	// Get new dimension of tile
+	getNewDim(direction, row, col) {
+		let newDim
+		switch (direction) {
+			case 'up':
+			case 'down':
+				newDim = row
+				break
+			case 'left':
+			case 'right':
+				newDim = col
+				break
+		} // switch
+
+		while (this.inBounds(direction, newDim, row, col)) {
+			newDim = this.updateNewDim(direction, newDim)
+		} // while
+		if (this.canMerge(direction, newDim, row, col)) {
+			newDim = this.updateNewDim(direction, newDim)
 		} // if
-		return newRow
+		return newDim
 	} // getNewRow
 
-	update() {
-		for (let col = 0; col < COLS; col++) {
-			for (let row = 1; row < ROWS; row++) {
-				const currentTile = this.tiles[row][col]
-				// if it is not a tile, continue
-				if (!currentTile) continue
+	// Gets the distance from old dimension to new dimension
+	getDist(direction, row, col, newDim) {
+		switch (direction) {
+			case 'up':
+			case 'down':
+				return Math.abs(row - newDim)
+			case 'left':
+			case 'right':
+				return Math.abs(col - newDim)
+		} // switch
+	} // getDist
 
-				const newRow = this.getNewRow(row, col)
-
-				const dist = row - newRow
-				if (!dist) continue
-
-				if (this.tiles[newRow][col]) {
-					this.tiles[newRow][col].remove(dist)
-					currentTile.merge(dist)
+	// Applies changes to the new tile
+	// Removes old tile, add merge effect to new tile, change position, add duration
+	applyChanges(direction, row, col, newDim, delay, dist) {
+		const currentTile = this.tiles[row][col]
+		switch (direction) {
+			case 'up':
+			case 'down':
+				if (this.tiles[newDim][col]) {
+					this.tiles[newDim][col].remove(delay)
+					currentTile.merge(delay)
 				} // if
-
-				currentTile.changePosition(col, newRow)
+				currentTile.changePosition(col, newDim)
 				currentTile.addDuration(dist)
 
-				this.tiles[newRow][col] = currentTile
+				this.tiles[newDim][col] = currentTile
 				this.tiles[row][col] = null
-			} // for
-		} // for
+				break
+			case 'left':
+			case 'right':
+				if (this.tiles[row][newDim]) {
+					this.tiles[row][newDim].remove(delay)
+					currentTile.merge(delay)
+				} // if
+				currentTile.changePosition(newDim, row)
+				currentTile.addDuration(dist)
+
+				this.tiles[row][newDim] = currentTile
+				this.tiles[row][col] = null
+				break
+		} // switch
+	} // applyChanges
+
+	// Sliding the tiles together
+	slide(direction, row, col) {
+		if (!this.tiles[row][col]) return { delay: 0, validMove: false }
+
+		const newDim = this.getNewDim(direction, row, col)
+		const dist = this.getDist(direction, row, col, newDim)
+		if (!dist) return { delay: 0, validMove: false }
+
+		const delay = DURATION * dist
+		this.applyChanges(direction, row, col, newDim, delay, dist)
+		return { delay, validMove: true }
+	} // slide
+
+	// Updates board when user does a valid action
+	update(direction) {
+		if (this.keyPressed) return
+
+		this.keyPressed = true
+		let maxDelay = 0
+		let validMove = false
+
+		switch (direction) {
+			case 'up':
+				for (let col = 0; col < COLS; col++) {
+					for (let row = 1; row < ROWS; row++) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'left':
+				for (let row = 0; row < ROWS; row++) {
+					for (let col = 1; col < COLS; col++) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'down':
+				for (let col = 0; col < COLS; col++) {
+					for (let row = ROWS - 2; row >= 0; row--) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+				break
+			case 'right':
+				for (let row = 0; row < ROWS; row++) {
+					for (let col = COLS - 2; col >= 0; col--) {
+						const obj = this.slide(direction, row, col)
+						maxDelay = Math.max(maxDelay, obj.delay)
+						validMove = validMove ? true : obj.validMove
+					} // for
+				} // for
+		} // switch
+		setTimeout(() => {
+			if (validMove) {
+				this.randomTile()
+				this.resetProperties()
+				setTimeout(() => (this.keyPressed = false), DURATION)
+			} else {
+				this.keyPressed = false
+			} // if-else
+		}, maxDelay) // setTimeout
 	} // update
 } // Grid
 
 class Tile {
+	// Instance Variable
+	// tileElement - DOM Element
+
 	constructor(x, y) {
-		this.tile = document.createElement('div')
-		this.tile.classList.add('tile')
-		this.tile.innerText = Math.random() <= 0.1 ? 4 : 2
+		this.tileElement = document.createElement('div')
+		this.tileElement.classList.add('tile')
+		this.tileElement.innerText = Math.random() <= 0.1 ? 4 : 2
+		this.tileElement.style.animation = 'popout var(--DURATION)'
 		this.addColor()
 		this.changePosition(x, y)
 	} // constructor
 
 	// Changes coordinates of tile
 	changePosition(x, y) {
-		this.tile.style.setProperty('--X', x)
-		this.tile.style.setProperty('--Y', y)
+		this.tileElement.style.setProperty('--X', x)
+		this.tileElement.style.setProperty('--Y', y)
 	} // changePosition
 
 	// Adds duration speed when sliding
 	addDuration(dist) {
-		this.tile.style.setProperty('--DIST', dist)
+		this.tileElement.style.setProperty('--DIST', dist)
 	} // changeDuration
 
 	// Adds a color to a tile
 	addColor() {
-		const num = 100 - Math.log(this.tile.innerText) * 5
-		this.tile.style.background = `hsl(200, 100%, ${num}%)`
+		const num = 100 - Math.log(this.tileElement.innerText) * 5
+		this.tileElement.style.background = `hsl(200, 100%, ${num}%)`
 	} // addColor
 
 	// Applies the merge animation
-	merge(dist) {
-    const delay = DURATION * dist
-    this.tile.style.setProperty('--DELAY', `${delay}ms`)
-		this.tile.style.zIndex = 1
-    this.tile.classList.add('merge')
+	merge(delay) {
+		this.tileElement.style.setProperty('--DELAY', `${delay}ms`)
+		this.tileElement.style.zIndex = 1
+		this.tileElement.classList.add('merge')
+		this.tileElement.style.animation = 'merge var(--DURATION) ease var(--DELAY)'
 
 		setTimeout(() => {
-			this.tile.innerText *= 2
+			this.tileElement.innerText *= 2
 			this.addColor()
-			this.tile.style.removeProperty('z-index')
-		}, delay)
+			this.tileElement.style.removeProperty('z-index')
+		}, delay) //setTimeout
 	} // merge
 
-	remove(dist) {
+  // Removes the DOM element
+	remove(delay) {
 		setTimeout(() => {
-			this.tile.remove()
-		}, DURATION * dist)
-	}
+			this.tileElement.remove()
+		}, delay) // setTimeout
+	} // remove
 } // Tile
+
+// ------------------------------ Begin Program ------------------------------
+
+const grid = new Grid(document.getElementById('grid'))
+grid.randomTile()
+grid.randomTile()
 
 addEventListener('keydown', e => {
 	switch (e.key) {
 		case 'w':
 		case 'W':
 		case 'ArrowUp':
-			grid.update()
+			grid.update('up')
 			break
 		case 'a':
 		case 'A':
 		case 'ArrowLeft':
+			grid.update('left')
 			break
 		case 's':
 		case 'S':
 		case 'ArrowDown':
+			grid.update('down')
 			break
 		case 'd':
 		case 'D':
 		case 'ArrowRight':
+			grid.update('right')
 			break
 	} // switch
 }) // addEventListener
-
-const grid = new Grid(document.getElementById('grid'))
-grid.randomTile()
-grid.randomTile()

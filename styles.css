@@ -43,16 +43,10 @@ body {
   place-items: center;
   top: calc(var(--Y) * (var(--SIZE) + var(--GAP)) + var(--GAP));
   left: calc(var(--X) * (var(--SIZE) + var(--GAP)) + var(--GAP));
-  animation: popout var(--DURATION);
   animation-fill-mode: forwards;
   transition-property: top, left;
   transition-duration: calc(var(--DIST) * var(--DURATION));
   transition-timing-function: linear;
-}
-
-.merge {
-  animation: merge var(--DURATION) ease var(--DELAY);
-  animation-fill-mode: forwards;
 }
 
 @keyframes popout {
