@@ -1,3 +1,8 @@
+// IDEAS
+// ADD WIN/LOSE GAMESCREEN
+// ADD SCORE
+// MAKE SETTING TAB (CHANGE COLOR, CHANGE SIZE, CHANGE DURATION, CHANGE NUMBER OF TILES SPAWNING)
+
 const ROWS = 4
 const COLS = 4
 const DURATION = 100
@@ -97,40 +102,14 @@ class Grid {
 		return currentTile.tileElement.innerText === nextTile?.tileElement.innerText && !nextTile.tileElement.classList.contains('merge')
 	} // checkCanMerge
 
-	// Updates newDim when there is an available cell
-	updateNewDim(direction, newDim) {
-		switch (direction) {
-			case 'up':
-			case 'left':
-				newDim--
-				break
-			case 'down':
-			case 'right':
-				newDim++
-				break
-		} // switch
-		return newDim
-	} // updateNewDim
-
 	// Get new dimension of tile
 	getNewDim(direction, row, col) {
-		let newDim
-		switch (direction) {
-			case 'up':
-			case 'down':
-				newDim = row
-				break
-			case 'left':
-			case 'right':
-				newDim = col
-				break
-		} // switch
-
+    let newDim = direction === 'up' || direction === 'down' ? row : col
 		while (this.inBounds(direction, newDim, row, col)) {
-			newDim = this.updateNewDim(direction, newDim)
+			newDim = direction === 'down' || direction === 'right' ? newDim + 1 : newDim - 1
 		} // while
 		if (this.canMerge(direction, newDim, row, col)) {
-			newDim = this.updateNewDim(direction, newDim)
+			newDim = direction === 'down' || direction === 'right' ? newDim + 1 : newDim - 1
 		} // if
 		return newDim
 	} // getNewRow
@@ -192,6 +171,31 @@ class Grid {
 		return { delay, validMove: true }
 	} // slide
 
+	setInitialization(direction) {
+		switch (direction) {
+			case 'up':
+			case 'left':
+				return 1
+			case 'down':
+				return ROWS - 2
+			case 'right':
+				return COLS - 2
+		} // switch
+	} // setInitialization
+
+	// Checks if j is in bounds
+	conditionCheck(direction, j) {
+		switch (direction) {
+			case 'up':
+				return j < ROWS
+			case 'left':
+				return j < COLS
+			case 'down':
+			case 'right':
+				return j >= 0
+		} // direction
+	} // conditionCheck
+
 	// Updates board when user does a valid action
 	update(direction) {
 		if (this.keyPressed) return
@@ -200,43 +204,22 @@ class Grid {
 		let maxDelay = 0
 		let validMove = false
 
-		switch (direction) {
-			case 'up':
-				for (let col = 0; col < COLS; col++) {
-					for (let row = 1; row < ROWS; row++) {
-						const obj = this.slide(direction, row, col)
-						maxDelay = Math.max(maxDelay, obj.delay)
-						validMove = validMove ? true : obj.validMove
-					} // for
-				} // for
-				break
-			case 'left':
-				for (let row = 0; row < ROWS; row++) {
-					for (let col = 1; col < COLS; col++) {
-						const obj = this.slide(direction, row, col)
-						maxDelay = Math.max(maxDelay, obj.delay)
-						validMove = validMove ? true : obj.validMove
-					} // for
-				} // for
-				break
-			case 'down':
-				for (let col = 0; col < COLS; col++) {
-					for (let row = ROWS - 2; row >= 0; row--) {
-						const obj = this.slide(direction, row, col)
-						maxDelay = Math.max(maxDelay, obj.delay)
-						validMove = validMove ? true : obj.validMove
-					} // for
-				} // for
-				break
-			case 'right':
-				for (let row = 0; row < ROWS; row++) {
-					for (let col = COLS - 2; col >= 0; col--) {
-						const obj = this.slide(direction, row, col)
-						maxDelay = Math.max(maxDelay, obj.delay)
-						validMove = validMove ? true : obj.validMove
-					} // for
-				} // for
-		} // switch
+		const dim = direction === 'up' || direction === 'down' ? COLS : ROWS
+		let j = this.setInitialization(direction)
+
+		for (let i = 0; i < dim; i++) {
+			while (this.conditionCheck(direction, j)) {
+				const obj = direction === 'up' || direction === 'down' ? this.slide(direction, j, i) : this.slide(direction, i, j)
+				maxDelay = Math.max(maxDelay, obj.delay)
+				validMove = validMove ? true : obj.validMove
+				if (direction === 'up' || direction === 'left') {
+					j++
+				} else {
+					j--
+				} // if-else
+			} // while
+			j = this.setInitialization(direction)
+		} // for
 		setTimeout(() => {
 			if (validMove) {
 				this.randomTile()
@@ -293,7 +276,7 @@ class Tile {
 		}, delay) //setTimeout
 	} // merge
 
-  // Removes the DOM element
+	// Removes the DOM element
 	remove(delay) {
 		setTimeout(() => {
 			this.tileElement.remove()
