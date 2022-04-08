@@ -9,6 +9,31 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div id="grid"></div>
+  <button class="settings-wrapper">
+    <img class="settings-image" src="./images/settings.png" alt="Settings">
+  </button>
+  <div class="settings-popup">
+    <div class="settings-header">
+      Settings
+      <button class="close">✖
+    </div>
+    <div class="wrapper">
+      <label for="rows">Rows:</label>
+      <input type="number" id="rows" min="1" value="4">
+    </div>
+    <div class="wrapper">
+      <label for="cols">Columns:</label>
+      <input type="number" id="cols" min="1" value="4">
+    </div>
+    <div class="wrapper">
+      <label for="duration">Duration:</label>
+      <input type="number" id="duration" min="0" value="75">
+      <div class="ms">ms</div>
+    </div>
+    <div class="wrapper">
+      <label for="num-tiles">Tiles Per Move:</label>
+      <input type="number" id="num-tiles" min="0" value="1">
+    </div>
+  </div>
 </body>
 </html>
