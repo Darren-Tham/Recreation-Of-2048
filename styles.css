@@ -4,6 +4,10 @@
   font-weight: bold;
 }
 
+:root {
+  --GRAY-BG: hsl(200, 0%, 70%);
+}
+
 body {
   min-height: 100vh;
   background: hsl(200, 0%, 25%);
@@ -17,7 +21,6 @@ body {
 #grid {
   --RADIUS: calc(var(--SIZE) * 0.1);
   --GAP: calc(var(--SIZE) * 0.075);
-  /* background: hsl(200, 0%, 75%); */
   background: #162658;
   display: grid;
   grid-template-rows: repeat(var(--ROWS), var(--SIZE));
@@ -27,10 +30,10 @@ body {
   padding: var(--GAP);
   position: relative;
   z-index: -1;
+  transform: translateY(6.5%);
 }
 
 .cell {
-  /* background: hsl(200, 0%, 60%); */
   background: #5368a7;
   border-radius: var(--RADIUS);
   width: var(--SIZE);
@@ -60,7 +63,7 @@ body {
   right: 5px;
   width: 10vmin;
   height: 10vmin;
-  background: hsl(200, 0%, 60%);
+  background: var(--GRAY-BG);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,14 +78,14 @@ body {
 }
 
 .settings-wrapper:hover {
-  background:hsl(200, 0%, 70%)
+  background:hsl(200, 0%, 80%)
 }
 
 .settings-popup {
   position: absolute;
   width: 70vmin;
   height: 70vmin;
-  background: hsl(200, 0%, 60%);
+  background: var(--GRAY-BG);
   border-radius: 5vmin;
   display: grid;
   grid-template-rows: repeat(5, 1fr);
@@ -95,6 +98,15 @@ body {
   justify-content: center;
   align-items: center;
   font-size: 3.5vmin;
+}
+
+.score {
+  background: var(--GRAY-BG);
+  position: absolute;
+  top: 2.75vmin;
+  padding: 2vmin;
+  border-radius: 2vmin;
+  font-size: 4vmin;
 }
 
 label {
@@ -126,6 +138,10 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 .close {
   width: 7.5vmin;
   height: 7.5vmin;
@@ -143,9 +159,6 @@ input::-webkit-inner-spin-button {
   cursor: pointer;
 }
 
-input[type=number] {
-  -moz-appearance: textfield;
-}
 @keyframes popout {
   from {
     transform: scale(0)

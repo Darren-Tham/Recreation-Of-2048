@@ -27,6 +27,24 @@ class Grid {
 		this.gridElement.style.setProperty('--COLS', this.cols)
 	} // constructor
 
+	testColors() {
+		this.emptyCells()
+		this.setSize()
+		addEventListener('keydown', eventListener)
+
+		let count = 2
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 4; j++) {
+				const testTile = new Tile(j, i)
+				testTile.tileElement.innerText = count
+				testTile.addColor()
+				this.tiles[i][j] = testTile
+				this.gridElement.append(testTile.tileElement)
+				count *= 2
+			}
+		}
+	}
+
 	// Starts the 2048 game!
 	start() {
 		this.emptyCells()
@@ -67,7 +85,7 @@ class Grid {
 
 	// Spawns random tiles in the grid
 	randomTiles(start = false) {
-    const tilesPerMove = start ? 2 : this.numTiles
+		const tilesPerMove = start ? 2 : this.numTiles
 		for (let i = 0; i < tilesPerMove; i++) {
 			const availableCells = []
 			this.tiles.forEach((row, y) => {
@@ -78,7 +96,7 @@ class Grid {
 				}) // forEach
 			}) // forEach
 			const randomCoord = availableCells[Math.floor(Math.random() * availableCells.length)]
-			const randomTile = new Tile(randomCoord.x, randomCoord.y)
+			const randomTile = new Tile(randomCoord.y, randomCoord.x)
 			this.tiles[randomCoord.y][randomCoord.x] = randomTile
 			this.gridElement.append(randomTile.tileElement)
 		} // for
@@ -102,48 +120,59 @@ class Grid {
 	} // resetProperties
 
 	// Checks if the tile is in bounds
-	inBounds(direction, newDim, row, col) {
+	inBounds(direction, newDim, otherDim) {
 		switch (direction) {
 			case 'up':
-				return newDim && !this.tiles[newDim - 1][col]
+				return newDim && !this.tiles[newDim - 1][otherDim]
 			case 'left':
-				return newDim && !this.tiles[row][newDim - 1]
+				return newDim && !this.tiles[otherDim][newDim - 1]
 			case 'down':
-				return newDim < this.rows - 1 && !this.tiles[newDim + 1][col]
+				return newDim < this.rows - 1 && !this.tiles[newDim + 1][otherDim]
 			case 'right':
-				return newDim < this.cols - 1 && !this.tiles[row][newDim + 1]
+				return newDim < this.cols - 1 && !this.tiles[otherDim][newDim + 1]
 		} // switch
 	} // checkInBounds
 
-	// Checks if the tile can merge with another tile
-	canMerge(direction, newDim, row, col) {
-		const currentTile = this.tiles[row][col]
-		let nextTile
+	// Gets the next tile in relation to the direction
+	getNextTile(direction, newDim, otherDim) {
 		switch (direction) {
 			case 'up':
-				nextTile = newDim - 1 >= 0 ? this.tiles[newDim - 1][col] : null
-				break
+				return newDim - 1 >= 0 ? this.tiles[newDim - 1][otherDim] : null
 			case 'left':
-				nextTile = newDim - 1 >= 0 ? this.tiles[row][newDim - 1] : null
-				break
+				return newDim - 1 >= 0 ? this.tiles[otherDim][newDim - 1] : null
 			case 'down':
-				nextTile = newDim + 1 < this.rows ? this.tiles[newDim + 1][col] : null
-				break
+				return newDim + 1 < this.rows ? this.tiles[newDim + 1][otherDim] : null
 			case 'right':
-				nextTile = newDim + 1 < this.cols ? this.tiles[row][newDim + 1] : null
-				break
+				return newDim + 1 < this.cols ? this.tiles[otherDim][newDim + 1] : null
 		} // switch
-		return currentTile.tileElement.innerText === nextTile?.tileElement.innerText && !nextTile.tileElement.classList.contains('merge')
+	} // getNextTile
+
+	// Returns true if the next tile is the same number as the current tile
+	sameNum(direction, newDim, otherDim, currentTileNum) {
+		return currentTileNum === this.getNextTile(direction, newDim, otherDim)?.tileElement.innerText
+	} // sameNum
+
+	// Checks if the tile can merge with another tile
+	canMerge(direction, newDim, otherDim, currentTileNum) {
+		const nextTile = this.getNextTile(direction, newDim, otherDim)
+		return this.sameNum(direction, newDim, otherDim, currentTileNum) && !nextTile.tileElement.classList.contains('merge')
 	} // checkCanMerge
+
+	// Updates newDim
+	updateNewDim(direction, newDim) {
+		return direction === 'down' || direction === 'right' ? newDim + 1 : newDim - 1
+	} // updateNewDim
 
 	// Get new dimension of tile
 	getNewDim(direction, row, col) {
+		const currentTileNum = this.tiles[row][col].tileElement.innerText
+		const otherDim = direction === 'up' || direction === 'down' ? col : row
 		let newDim = direction === 'up' || direction === 'down' ? row : col
-		while (this.inBounds(direction, newDim, row, col)) {
-			newDim = direction === 'down' || direction === 'right' ? newDim + 1 : newDim - 1
+		while (this.inBounds(direction, newDim, otherDim)) {
+			newDim = this.updateNewDim(direction, newDim)
 		} // while
-		if (this.canMerge(direction, newDim, row, col)) {
-			newDim = direction === 'down' || direction === 'right' ? newDim + 1 : newDim - 1
+		if (this.canMerge(direction, newDim, otherDim, currentTileNum)) {
+			newDim = this.updateNewDim(direction, newDim)
 		} // if
 		return newDim
 	} // getNewRow
@@ -164,32 +193,28 @@ class Grid {
 	// Removes old tile, add merge effect to new tile, change position, add duration
 	applyChanges(direction, row, col, newDim, delay, dist) {
 		const currentTile = this.tiles[row][col]
+		let firstDim, secondDim
 		switch (direction) {
 			case 'up':
 			case 'down':
-				if (this.tiles[newDim][col]) {
-					this.tiles[newDim][col].remove(delay)
-					currentTile.merge(delay)
-				} // if
-				currentTile.changePosition(col, newDim)
-				currentTile.addDuration(dist)
-
-				this.tiles[newDim][col] = currentTile
-				this.tiles[row][col] = null
+				firstDim = newDim
+				secondDim = col
 				break
 			case 'left':
 			case 'right':
-				if (this.tiles[row][newDim]) {
-					this.tiles[row][newDim].remove(delay)
-					currentTile.merge(delay)
-				} // if
-				currentTile.changePosition(newDim, row)
-				currentTile.addDuration(dist)
-
-				this.tiles[row][newDim] = currentTile
-				this.tiles[row][col] = null
+				firstDim = row
+				secondDim = newDim
 				break
 		} // switch
+		if (this.tiles[firstDim][secondDim]) {
+			this.tiles[firstDim][secondDim].remove(delay)
+			currentTile.merge(delay)
+		} // if
+		currentTile.changePosition(firstDim, secondDim)
+		currentTile.addDuration(dist)
+
+		this.tiles[firstDim][secondDim] = currentTile
+		this.tiles[row][col] = null
 	} // applyChanges
 
 	// Sliding the tiles together
@@ -257,29 +282,75 @@ class Grid {
 			if (validMove) {
 				this.randomTiles()
 				this.resetProperties()
+				this.checkState()
 				setTimeout(() => (this.keyPressed = false), this.duration)
 			} else {
 				this.keyPressed = false
 			} // if-else
 		}, maxDelay) // setTimeout
 	} // update
+
+	// Checks if the game ends
+	checkState() {
+		if (this.userWins()) {
+			console.log('win')
+		} else if (this.userLoses()) {
+			console.log('lose')
+		} // if-else
+	} // checkState
+
+	// Checks if the user wins by getting 2048
+	userWins() {
+		return this.tiles.some(row => {
+			if (row.some(e => e?.tileElement.innerText === '2048')) return true
+		}) // some
+	} // userWins
+
+	// Checks if the user loses by having no available moves
+	userLoses() {
+		for (let i = 0; i < this.rows; i++) {
+			for (let j = 0; j < this.cols; j++) {
+				const currentTile = this.tiles[i][j]
+				if (!currentTile) continue
+
+				const currentNum = currentTile.tileElement.innerText
+				const canMoveUp = this.canMove('up', i, j, currentNum)
+				const canMoveLeft = this.canMove('left', j, i, currentNum)
+				const canMoveDown = this.canMove('down', i, j, currentNum)
+				const canMoveRight = this.canMove('right', j, i, currentNum)
+				const canMove = canMoveUp || canMoveLeft || canMoveDown || canMoveRight
+				if (canMove) return false
+			} // for
+		} // for
+		return true
+	} // userLoses
+
+	// Returns true if the tile can move in a particular direction
+	canMove(direction, newDim, otherDim, num) {
+		return this.sameNum(direction, newDim, otherDim, num) || this.inBounds(direction, newDim, otherDim)
+	} // canMove
+
+	// Displays the game over screen
+	gameOver() {
+		// SOON
+	} // gameOver
 } // Grid
 
 class Tile {
 	// Instance Variable
 	// tileElement - DOM Element
 
-	constructor(x, y) {
+	constructor(y, x) {
 		this.tileElement = document.createElement('div')
 		this.tileElement.classList.add('tile')
 		this.tileElement.innerText = Math.random() <= 0.1 ? 4 : 2
 		this.tileElement.style.animation = 'popout var(--DURATION)'
 		this.addColor()
-		this.changePosition(x, y)
+		this.changePosition(y, x)
 	} // constructor
 
 	// Changes coordinates of tile
-	changePosition(x, y) {
+	changePosition(y, x) {
 		this.tileElement.style.setProperty('--X', x)
 		this.tileElement.style.setProperty('--Y', y)
 	} // changePosition
@@ -291,8 +362,46 @@ class Tile {
 
 	// Adds a color to a tile
 	addColor() {
-		const num = 100 - Math.log2(this.tileElement.innerText) * 9.5
-		this.tileElement.style.background = `hsl(200, 100%, ${num}%)`
+		const num = this.tileElement.innerText
+		let background
+		switch (num) {
+			case '2':
+				background = '#d4f0ff'
+				break
+			case '4':
+				background = '#bbe6fc'
+				break
+			case '8':
+				background = '#9dd6f2'
+				break
+			case '16':
+				background = '#84d0f5'
+				break
+			case '32':
+				background = '#69c4f0'
+				break
+			case 64:
+				background = '#49adde'
+				break
+			case '128':
+				background = '#309acf'
+				break
+			case '256':
+				background = '#1b8ac2'
+				break
+			case '512':
+				background = '#0f7fb8'
+				break
+			case '1024':
+				background = '#036fa6'
+				break
+			case '2048':
+				background = '#0362a6'
+				break
+			default:
+				background = '#03518a'
+		} // switch
+		this.tileElement.style.background = background
 	} // addColor
 
 	// Applies the merge animation
@@ -303,11 +412,18 @@ class Tile {
 		this.tileElement.style.animation = 'merge var(--DURATION) ease var(--DELAY)'
 
 		setTimeout(() => {
-			this.tileElement.innerText *= 2
+      const num = this.tileElement.innerText * 2;
+			this.tileElement.innerText = num
 			this.addColor()
 			this.tileElement.style.removeProperty('z-index')
+			this.updateScore(num)
 		}, delay) //setTimeout
 	} // merge
+
+	// Updates the score when tiles merge
+	updateScore(num) {
+    score.innerText = +score.innerText + num
+	} // updateScore
 
 	// Removes the DOM element
 	remove(delay) {
@@ -349,9 +465,10 @@ function closeAndUpdateSettings() {
 			grid.delete()
 			grid = new Grid(rows, cols, duration, numTiles)
 			grid.start()
+      score.innerText = 0
 		} else {
 			grid.setDuration(duration)
-      grid.numTiles = numTiles
+			grid.numTiles = numTiles
 		} // if-else
 	}) // addEventListener
 } // closeSettings
@@ -364,6 +481,7 @@ function dimChanged(newRows, newCols) {
 
 // ------------------------------ Begin Program ------------------------------
 
+const score = document.querySelector('.score')
 let grid = new Grid(4, 4, 75, 1)
 
 // Makes the game play
