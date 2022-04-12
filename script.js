@@ -11,6 +11,7 @@ class Grid {
 	// duration
 	// numTiles
 	// keyPressed
+	// endScreenShown
 
 	constructor(rows, cols, duration, numTiles) {
 		// this.gridElement = gridElement
@@ -25,6 +26,7 @@ class Grid {
 		this.setDuration(duration)
 		this.gridElement.style.setProperty('--ROWS', this.rows)
 		this.gridElement.style.setProperty('--COLS', this.cols)
+		this.endScreenShown = false
 	} // constructor
 
 	testColors() {
@@ -56,6 +58,28 @@ class Grid {
 			testTile.addColor()
 			this.tiles[i][0] = testTile
 			this.gridElement.append(testTile.tileElement)
+		}
+	}
+
+	testLose() {
+		this.emptyCells()
+		this.setSize()
+		addEventListener('keydown', moveEvent)
+
+		let count = 2
+		for (let i = 0; i < 4; i++) {
+			for (let j = 0; j < 4; j++) {
+				if (count === 2048) {
+					count *= 2
+					continue
+				}
+				const testTile = new Tile(i, j)
+				testTile.tileElement.innerText = count
+				testTile.addColor()
+				this.tiles[i][j] = testTile
+				this.gridElement.append(testTile.tileElement)
+				count *= 2
+			}
 		}
 	}
 
@@ -109,6 +133,10 @@ class Grid {
 					} // if
 				}) // forEach
 			}) // forEach
+      if (availableCells.length === 0) {
+        this.checkState(true)
+        return
+      } // if
 			const randomCoord = availableCells[Math.floor(Math.random() * availableCells.length)]
 			const randomTile = new Tile(randomCoord.y, randomCoord.x)
 			this.tiles[randomCoord.y][randomCoord.x] = randomTile
@@ -294,9 +322,13 @@ class Grid {
 		} // for
 		setTimeout(() => {
 			if (validMove) {
-				this.randomTiles()
-				this.resetProperties()
 				this.checkState()
+				if (!this.endScreenShown) {
+					this.randomTiles()
+				} // if
+				this.checkState()
+				this.endScreenShown = false
+				this.resetProperties()
 				setTimeout(() => (this.keyPressed = false), this.duration)
 			} else {
 				this.keyPressed = false
@@ -305,19 +337,23 @@ class Grid {
 	} // update
 
 	// Checks if the game ends
-	checkState() {
-		if (this.userWins() || this.userLoses()) {
+	checkState(tooManyTiles = false) {
+		if ((!userWon && this.userWins()) || this.userLoses() || tooManyTiles) {
+			this.endScreenShown = true
 			const endScreen = document.querySelector('.end-screen')
 			const endScreenText = document.querySelector('.end-screen-text')
 			const endScreenButton = document.querySelector('.end-screen-button')
 
 			this.displayEndScreen(endScreen)
 			this.disableEventListeners()
+			endScreenButton.addEventListener('click', () => this.vanishEndScreen(endScreen))
+			const buttonEvents = this.getButtonEvents()
 
 			if (this.userWins()) {
-				this.gameWon(endScreen, endScreenText, endScreenButton)
+				userWon = true
+				this.gameWon(endScreen, endScreenText, endScreenButton, buttonEvents)
 			} else {
-				this.gameOver(endScreen, endScreenText, endScreenButton)
+				this.gameOver(endScreen, endScreenText, endScreenButton, buttonEvents)
 			} // if-else
 		} // if
 	} // checkState
@@ -334,7 +370,7 @@ class Grid {
 		for (let i = 0; i < this.rows; i++) {
 			for (let j = 0; j < this.cols; j++) {
 				const currentTile = this.tiles[i][j]
-				if (!currentTile) continue
+				if (!currentTile) return false
 
 				const currentNum = currentTile.tileElement.innerText
 				const canMoveUp = this.canMove('up', i, j, currentNum)
@@ -355,44 +391,74 @@ class Grid {
 
 	// Displays the end screen
 	displayEndScreen(endScreen) {
+		const END_SCREEN_DURATION = 500
+		const END_SCREEN_DELAY = 500
 		setTimeout(() => {
-			endScreen.style.animation = `appear 500ms ease`
+			endScreen.style.animation = `appear ${END_SCREEN_DURATION}ms ease`
 			endScreen.style.visibility = 'visible'
-		}, 500)
+		}, END_SCREEN_DELAY)
 		const finalScore = document.querySelector('.final-score')
 		finalScore.innerText = score.innerText
 	} // displayEndScreen
 
+	// Makes the end screen vanish
+	vanishEndScreen(endScreen) {
+		endScreen.style.animation = `shrink ${SETTINGS_DELAY}ms`
+		setTimeout(() => endScreen.style.removeProperty('visibility'), SETTINGS_DELAY)
+		this.enableEventListeners()
+	} // vanishEndScreen
+
+	// Gets button events for game over and game won
+	getButtonEvents() {
+		return {
+			gameWonEvent: () => {
+				this.randomTiles()
+				this.checkState()
+			}, // gameWonEvent
+			gameOverEvent: () => {
+				restartGame(this.rows, this.cols, this.duration, this.numTiles)
+			} // gameOverEvent
+		} // Return Object
+	} // buttonEvents
+
 	// Displays the game won screen
-	gameWon(endScreen, endScreenText, endScreenButton) {
+	gameWon(endScreen, endScreenText, endScreenButton, buttonEvents) {
 		endScreen.style.background = 'rgb(255, 255, 174)'
 		endScreenButton.style.background = 'rgb(241, 241, 149)'
 		endScreenButton.addEventListener('mouseenter', () => (endScreenButton.style.background = 'rgb(245, 245, 162)'))
 		endScreenButton.addEventListener('mouseleave', () => (endScreenButton.style.background = 'rgb(241, 241, 149)'))
 		endScreenText.innerText = 'You Win!'
 		endScreenButton.innerText = 'Continue!'
+
+		endScreenButton.removeEventListener('click', buttonEvents.gameOverEvent)
+		endScreenButton.addEventListener('click', buttonEvents.gameWonEvent)
 	} // gameWon
 
 	// Displays the game over screen
-	gameOver(endScreen, endScreenText, endScreenButton) {
+	gameOver(endScreen, endScreenText, endScreenButton, buttonEvents) {
 		endScreen.style.background = 'rgb(255, 123, 123)'
 		endScreenButton.style.background = 'rgb(255, 182, 182)'
 		endScreenButton.addEventListener('mouseenter', () => (endScreenButton.style.background = 'rgb(255, 212, 212)')) // addEventListener
 		endScreenButton.addEventListener('mouseleave', () => (endScreenButton.style.background = 'rgb(255, 182, 182)'))
 		endScreenText.innerText = 'Game Over!'
 		endScreenButton.innerText = 'Restart!'
+
+		endScreenButton.removeEventListener('click', buttonEvents.gameWonEvent)
+		endScreenButton.addEventListener('click', buttonEvents.gameOverEvent)
 	} // gameOver
 
 	// Enables the event listeners for moving and opening settings
 	enableEventListeners() {
-		window.addEventListener('keydown', moveEvent)
+		addEventListener('keydown', moveEvent)
 		openSettings()
 	} // enableEventListeners
 
 	// Disables the event listeners for moving and opening settings
 	disableEventListeners() {
-		window.removeEventListener('keydown', moveEvent)
+		removeEventListener('keydown', moveEvent)
 		settingsWrapper.removeEventListener('click', openSettingsEvent)
+		settingsWrapper.removeEventListener('mouseenter', settingsHoverEvent)
+		settingsWrapper.style.cursor = 'default'
 	} // disableEventListeners
 } // Grid
 
@@ -500,11 +566,13 @@ const settings = document.querySelector('.settings')
 const settingsWrapper = document.querySelector('.settings-wrapper')
 const close = document.querySelector('.close')
 let settingsOpened = false
+let userWon = false
 
 // Pops up a window of the settings
 function openSettings() {
 	settingsWrapper.addEventListener('click', openSettingsEvent)
 	settingsHover()
+	settingsWrapper.style.cursor = 'pointer'
 } // openSettings
 
 // Closes and updates the settings
@@ -519,16 +587,22 @@ function closeAndUpdateSettings() {
 	const numTiles = +document.getElementById('num-tiles').value
 
 	if (dimChanged(rows, cols)) {
-		grid.delete()
-		grid = new Grid(rows, cols, duration, numTiles)
-		grid.start()
-		score.innerText = 0
+		restartGame(rows, cols, duration, numTiles)
 	} else {
 		grid.setDuration(duration)
 		grid.numTiles = numTiles
 	} // if-else
-  settingsOpened = false
+	settingsOpened = false
 } // closeSettings
+
+// Restarts the game
+function restartGame(rows, cols, duration, numTiles) {
+	grid.delete()
+	grid = new Grid(rows, cols, duration, numTiles)
+	grid.start()
+	score.innerText = 0
+	userWon = false
+} // restartGame
 
 // Checks to see if the dimension of the grid has changed
 // If it has, the game will restart
@@ -541,7 +615,9 @@ function settingsHover() {
 	settingsWrapper.addEventListener('mouseenter', settingsHoverEvent)
 
 	const defaultBackground = getComputedStyle(document.documentElement).getPropertyValue('--GRAY-BG')
-	settingsWrapper.addEventListener('mouseleave', () => (settingsWrapper.style.background = defaultBackground))
+	settingsWrapper.addEventListener('mouseleave', () => {
+		settingsWrapper.style.background = defaultBackground
+	}) // addEventListener
 } // settingsHover
 
 // ------------------------------ EventListeners ------------------------------
@@ -593,7 +669,7 @@ let grid = new Grid(4, 4, 75, 1)
 
 // Makes the game play
 function play() {
-	grid.testWin()
+	grid.start()
 	openSettings()
 	close.addEventListener('click', closeAndUpdateSettings)
 } // play

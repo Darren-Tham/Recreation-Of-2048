@@ -68,7 +68,7 @@ body {
   height: 10vmin;
   background: var(--GRAY-BG);
   border-radius: 20%;
-  cursor: pointer;
+  /* cursor: pointer; */
   border: none;
 }
 
