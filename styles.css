@@ -4,11 +4,8 @@
   font-weight: bold;
 }
 
-:root {
-  --GRAY-BG: hsl(200, 0%, 70%);
-}
-
 body {
+  --GRAY-BG: hsl(200, 0%, 70%);
   min-height: 100vh;
   background: hsl(200, 0%, 25%);
   overflow: hidden;
@@ -18,11 +15,29 @@ body {
   align-items: center;
 }
 
+/******************** Main Styling ********************/
+
 .flex {
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
+.two-grid {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  place-items: center;
+}
+
+.popup {
+  position: absolute;
+  width: 70vmin;
+  height: 70vmin;
+  border-radius: 5vmin;
+  visibility: hidden;
+}
+
+/******************** Grid Styling ********************/
 
 #grid {
   --RADIUS: calc(var(--SIZE) * 0.1);
@@ -60,7 +75,9 @@ body {
   font-size: calc(var(--SIZE) * 0.35);
 }
 
-.settings-wrapper {
+/******************** Settings Styling ********************/
+
+.settings-icon {
   position: absolute;
   top: 5px;
   right: 5px;
@@ -68,21 +85,12 @@ body {
   height: 10vmin;
   background: var(--GRAY-BG);
   border-radius: 20%;
-  /* cursor: pointer; */
   border: none;
 }
 
 .settings-image {
   width: 7vmin;
   height: 7vmin;
-}
-
-.popup {
-  position: absolute;
-  width: 70vmin;
-  height: 70vmin;
-  border-radius: 5vmin;
-  visibility: hidden;
 }
 
 .settings {
@@ -94,41 +102,6 @@ body {
   display: grid;
   grid-template-rows: 12vmin repeat(4, 1fr);
   font-size: 3.5vmin
-}
-
-.score {
-  background: var(--GRAY-BG);
-  position: absolute;
-  top: 2.75vmin;
-  padding: 2vmin;
-  border-radius: 2vmin;
-  font-size: 4vmin;
-}
-
-.end-screen {
-  display: grid;
-  grid-template-rows: repeat(3, 1fr);
-  place-items: center;
-  font-size: 5vmin;
-}
-
-.final-score-wrapper {
-  display: grid;
-  grid-template-rows: repeat(2, 1fr);
-  place-items: center;
-}
-
-.final-score {
-  font-size: 3.5vmin
-}
-
-.end-screen-button {
-  width: 90%;
-  height: 70%;
-  border-radius: 2vmin;
-  border: none;
-  font-size: 5vmin;
-  cursor: pointer;
 }
 
 label {
@@ -164,10 +137,9 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
-.close {
+.settings-close {
   width: 7.5vmin;
   height: 7.5vmin;
-  background: red;
   border-radius: 2vmin;
   position: absolute;
   right: 2vmin;
@@ -177,6 +149,41 @@ input[type=number] {
   font-size: 150%;  
   cursor: pointer;
 }
+
+/******************** Score Styling ********************/
+
+.score {
+  background: var(--GRAY-BG);
+  position: absolute;
+  top: 2.75vmin;
+  padding: 2vmin;
+  border-radius: 2vmin;
+  font-size: 4vmin;
+}
+
+/******************** End Screen Styling ********************/
+
+.end-screen {
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  font-size: 5vmin;
+}
+
+.small-text {
+  font-size: 3.5vmin
+}
+
+.end-screen-button {
+  width: 90%;
+  height: 70%;
+  border-radius: 2vmin;
+  border: none;
+  font-size: 5vmin;
+  cursor: pointer;
+}
+
+/******************** Animations ********************/
 
 @keyframes appear {
   from {
