@@ -2,6 +2,7 @@ import { Tile } from './Tile.js'
 import { Score } from './Score.js'
 import { moveEvent } from './EventListeners.js'
 import { EndScreen } from './EndScreen.js'
+import { Timer } from './Timer.js'
 
 export class Grid {
 	// Instance Variables:
@@ -14,6 +15,7 @@ export class Grid {
 	// score
 	// keyPressed
 	// userAlreadyWon
+	// timerHasStarted
 
 	constructor() {
 		this.setupVar()
@@ -58,7 +60,7 @@ export class Grid {
 		for (let i = 0; i < 4; i++) {
 			for (let j = 0; j < 4; j++) {
 				const testTile = new Tile(i, j)
-				testTile.tileElement.innerText = count !== 2048 ? count: 1024
+				testTile.tileElement.innerText = count !== 2048 ? count : 1024
 				testTile.addColor()
 				this.tiles[i][j] = testTile
 				this.gridElement.append(testTile.tileElement)
@@ -72,7 +74,8 @@ export class Grid {
 		this.gridElement = document.createElement('div')
 		this.gridElement.id = 'grid'
 		this.score = new Score()
-		document.body.append(this.gridElement, this.score.scoreElement)
+		this.timer = new Timer()
+		document.body.append(this.gridElement)
 
 		this.rows = +document.getElementById('rows').value
 		this.cols = +document.getElementById('cols').value
@@ -84,6 +87,7 @@ export class Grid {
 
 		this.keyPressed = false
 		this.userAlreadyWon = false
+		this.timerHasStarted = false
 	} // setupVar
 
 	// Starts the 2048 game!
@@ -92,7 +96,7 @@ export class Grid {
 		this.setSize()
 		this.randomTiles(true)
 		if (this.userLoses()) {
-			new EndScreen(false, 'No Available Moves', this.score)
+			new EndScreen(false, 'No Available Moves', this.score, this.timer)
 		} // if
 	} // start
 
@@ -100,6 +104,7 @@ export class Grid {
 	restartGame() {
 		this.gridElement.remove()
 		this.score.scoreElement.remove()
+    this.timer.timerElement.remove()
 		this.setupVar()
 		this.start()
 	} // restartGame
@@ -141,7 +146,7 @@ export class Grid {
 					} // if
 				}) // forEach
 			}) // forEach
-			if (availableCells.length === 0) return new EndScreen(false, 'No Location For New Tile', this.score)
+			if (availableCells.length === 0) return new EndScreen(false, 'No Location For New Tile', this.score, this.timer)
 
 			const randomCoord = availableCells[Math.floor(Math.random() * availableCells.length)]
 			const randomTile = new Tile(randomCoord.y, randomCoord.x)
@@ -307,6 +312,10 @@ export class Grid {
 	update(direction) {
 		if (this.keyPressed) return
 
+		if (!this.timerHasStarted) {
+			this.timer.start()
+			this.timerHasStarted = true
+		} // if
 		this.keyPressed = true
 		let maxDelay = 0
 		let validMove = false
@@ -328,16 +337,16 @@ export class Grid {
 		} // for
 		setTimeout(() => {
 			if (validMove) {
-        setTimeout(() => (this.keyPressed = false), this.duration)
+				setTimeout(() => (this.keyPressed = false), this.duration)
 				if (this.userWins() && !this.userAlreadyWon) {
 					this.userAlreadyWon = true
-					return new EndScreen(true, '', this.score)
-				}  // if
-        this.randomTiles()
-        this.resetProperties()
-        if (this.userLoses()) {
-					new EndScreen(false, 'No Available Moves', this.score)
-        } // if
+					return new EndScreen(true, '', this.score, this.timer)
+				} // if
+				this.randomTiles()
+				this.resetProperties()
+				if (this.userLoses()) {
+					new EndScreen(false, 'No Available Moves', this.score, this.timer)
+				} // if
 			} else {
 				this.keyPressed = false
 			} // if-else

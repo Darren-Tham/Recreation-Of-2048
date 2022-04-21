@@ -41,14 +41,15 @@ export class Settings {
 
 	// Closes and updates the settings
 	closeAndUpdateSettings() {
-		this.settingsPopup.style.animation = `shrink ${SETTINGS_DELAY}ms`
-		setTimeout(() => this.settingsPopup.style.removeProperty('visibility'), SETTINGS_DELAY)
-		addEventListener('keydown', moveEvent)
-
 		const rows = +document.getElementById('rows').value
 		const cols = +document.getElementById('cols').value
 		const duration = +document.getElementById('duration').value
 		const tilesPerMove = +document.getElementById('tiles-per-move').value
+		if (this.settingsInvalid(rows, cols, duration, tilesPerMove)) return
+
+		this.settingsPopup.style.animation = `shrink ${SETTINGS_DELAY}ms`
+		setTimeout(() => this.settingsPopup.style.removeProperty('visibility'), SETTINGS_DELAY)
+		addEventListener('keydown', moveEvent)
 
 		if (this.dimChanged(rows, cols)) {
 			grid.restartGame()
@@ -64,4 +65,24 @@ export class Settings {
 	dimChanged(rows, cols) {
 		return !(rows === grid.rows && cols === grid.cols)
 	} // dimChanged
+
+	// Checks if the settings are playable
+	settingsInvalid(rows, cols, duration, tilesPerMove) {
+		if (rows <= 0) {
+			alert('The number of rows has to be greater than 0!')
+      return true
+		} else if (cols <= 0) {
+      alert('The number of columns has to be greater than 0!')
+      return true
+    } else if (rows === 1 && cols === 1) {
+      alert('The number of rows and columns cannot both equal 1!')
+      return true
+    } else if (duration < 0) {
+      alert('The duration cannot be negative!')
+      return true
+    } else if (tilesPerMove < 0) {
+      alert('The number of tiles per move cannot be negative!')
+      return true
+    } // if-elif
+	} // checkSettings
 } // Settings
