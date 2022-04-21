@@ -29,6 +29,14 @@ body {
   place-items: center;
 }
 
+.middle {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+}
+
 .popup {
   position: absolute;
   width: 70vmin;
@@ -150,15 +158,21 @@ input[type=number] {
   cursor: pointer;
 }
 
-/******************** Score Styling ********************/
+/******************** Information Styling ********************/
 
-.score {
-  background: var(--GRAY-BG);
+.info-wrapper {
+  top: 2.75vmin;
+  font-size: 4vmin;
   position: absolute;
+}
+
+.info {
+  background: var(--GRAY-BG);
   top: 2.75vmin;
   padding: 2vmin;
   border-radius: 2vmin;
   font-size: 4vmin;
+  margin: 0 1vmin;
 }
 
 /******************** End Screen Styling ********************/
