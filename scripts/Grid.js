@@ -22,53 +22,6 @@ export class Grid {
 		addEventListener('keydown', moveEvent)
 	} // constructor
 
-	testColors() {
-		this.emptyCells()
-		this.setSize()
-
-		let count = 2
-		for (let i = 0; i < 3; i++) {
-			for (let j = 0; j < 4; j++) {
-				const testTile = new Tile(i, j)
-				testTile.tileElement.innerText = count
-				testTile.addColor()
-				this.tiles[i][j] = testTile
-				this.gridElement.append(testTile.tileElement)
-				count *= 2
-			}
-		}
-	}
-
-	testWin() {
-		this.emptyCells()
-		this.setSize()
-
-		for (let i = 0; i < 2; i++) {
-			const testTile = new Tile(i, 0)
-			testTile.tileElement.innerText = 1024
-			testTile.addColor()
-			this.tiles[i][0] = testTile
-			this.gridElement.append(testTile.tileElement)
-		}
-	}
-
-	testLose() {
-		this.emptyCells()
-		this.setSize()
-
-		let count = 2
-		for (let i = 0; i < 4; i++) {
-			for (let j = 0; j < 4; j++) {
-				const testTile = new Tile(i, j)
-				testTile.tileElement.innerText = count !== 2048 ? count : 1024
-				testTile.addColor()
-				this.tiles[i][j] = testTile
-				this.gridElement.append(testTile.tileElement)
-				count *= 2
-			}
-		}
-	}
-
 	// Sets up the instance variables used in this class
 	setupVar() {
 		this.gridElement = document.createElement('div')

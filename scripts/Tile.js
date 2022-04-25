@@ -28,40 +28,40 @@ export class Tile {
 		let background
 		switch (num) {
 			case '2':
-				background = '#d4f0ff'
+				background = '#d0facf'
 				break
 			case '4':
-				background = '#bbe6fc'
+				background = '#c9fffa'
 				break
 			case '8':
-				background = '#9dd6f2'
+				background = '#ff91a5'
 				break
 			case '16':
-				background = '#84d0f5'
+				background = '#d3bdff'
 				break
 			case '32':
-				background = '#69c4f0'
+				background = '#ffc9ed'
 				break
-			case 64:
-				background = '#49adde'
+			case '64':
+				background = '#ffcccc'
 				break
 			case '128':
-				background = '#309acf'
+				background = '#ffffd6'
 				break
 			case '256':
-				background = '#1b8ac2'
+				background = '#ffb0ff'
 				break
 			case '512':
-				background = '#0f7fb8'
+				background = '#a1cbff'
 				break
 			case '1024':
-				background = '#036fa6'
+				background = '#ffd5ad'
 				break
-			case '2048':
-				background = '#0362a6'
+			case '2048':        
+				background = '#f4ffb8'
 				break
 			default:
-				background = '#03518a'
+				background = '#fffef7'
 		} // switch
 		this.tileElement.style.background = background
 	} // addColor
