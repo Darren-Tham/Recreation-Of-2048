@@ -1,7 +1,6 @@
 # Recreating 2048
 ## Introduction
 This repository will be a recreation of the popular game 2048 using JavaScript, HTML 5, and CSS 3. JavaScript will be used for the logic of the game; HTML 5 is used to setup the browser to make it playable on a browser, and CSS 3 is used to style the game.
-
 <p align="center">
   <img src="https://cdn.discordapp.com/attachments/704606226553634932/968921034331930645/Screen_Shot_2022-04-27_at_1.03.26_PM.png" width="600">
 </p>
@@ -14,7 +13,12 @@ The player wins if the player manages to create a tile with the number 2048. The
 If the board is filled with no moves available or no additional tiles can spawn, then the player loses the game.
 ### Settings
 The player can use the settings to customize the board. They can change the number of rows, the number of columns, the duration at which the tiles move, and how many tiles will spawn per move.
-
 <p align="center">
   <img src="https://cdn.discordapp.com/attachments/704606226553634932/968922357915848714/Screen_Shot_2022-04-27_at_1.11.18_PM.png" width="400">
 </p>
+### Download
+To download and run the game in your local browser, you have to run it with a local HTTP server due to the use of modules in the game. First, download the .zip file to acquire all the files. Then to run it locally, follow [this](https://github.com/Darren-Tham/Running-A-Local-HTTP-Server) instruction.
+### Credits
+- Thank you for Ketchapp for developing the original game!
+- Thank you Hannie for the pastel colors!
+- Thank you Owen for suggesting a timer!
