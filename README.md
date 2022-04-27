@@ -16,6 +16,7 @@ The player can use the settings to customize the board. They can change the numb
 <p align="center">
   <img src="https://cdn.discordapp.com/attachments/704606226553634932/968922357915848714/Screen_Shot_2022-04-27_at_1.11.18_PM.png" width="400">
 </p>
+
 ### Download
 To download and run the game in your local browser, you have to run it with a local HTTP server due to the use of modules in the game. First, download the .zip file to acquire all the files. Then to run it locally, follow [this](https://github.com/Darren-Tham/Running-A-Local-HTTP-Server) instruction.
 ### Credits
