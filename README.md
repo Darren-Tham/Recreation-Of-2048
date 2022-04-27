@@ -18,7 +18,7 @@ The player can use the settings to customize the board. They can change the numb
 </p>
 
 ### Download
-To download and run the game in your local browser, you have to run it with a local HTTP server due to the use of modules in the game. First, download the .zip file to acquire all the files. Then to run it locally, follow [this](https://github.com/Darren-Tham/Running-A-Local-HTTP-Server) instruction.
+To download and run the game, follow the instructions stated [here](https://github.com/Darren-Tham/My-Own-2048/releases/tag/release).
 ### Credits
 - Thank you for Ketchapp for developing the original game!
 - Thank you Hannie for the pastel colors!
