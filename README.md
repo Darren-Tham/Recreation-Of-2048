@@ -17,8 +17,8 @@ The player can use the settings to customize the board. They can change the numb
   <img src="https://cdn.discordapp.com/attachments/704606226553634932/968922357915848714/Screen_Shot_2022-04-27_at_1.11.18_PM.png" width="400">
 </p>
 
-### Download
-To download and run the game, follow the instructions stated [here](https://github.com/Darren-Tham/My-Own-2048/releases/tag/release).
+### Play
+Click [here](https://darren-tham.github.io/Recreation-Of-2048/) to play!
 ### Credits
 - Thank you for Ketchapp for developing the original game!
 - Thank you Hannie for the pastel colors!
